@@ -1094,8 +1094,57 @@ function updateUI() {
   else if (activeView === "minhas-aulas") renderMyClasses();
 }
 
+const SUPABASE_APP_URL = "https://azxxweoulvsqvlyfmgtq.supabase.co";
+const SUPABASE_APP_KEY = "sb_publishable_n85S7m9uS_TThMm9zo63jA_fHAgpjLP";
+
+let appSupabaseClient = null;
+function getAppSupabase() {
+  if (!appSupabaseClient && window.supabase && SUPABASE_APP_URL && SUPABASE_APP_KEY) {
+    appSupabaseClient = window.supabase.createClient(SUPABASE_APP_URL, SUPABASE_APP_KEY);
+  }
+  return appSupabaseClient;
+}
+
+async function initAuthAndLogout() {
+  const client = getAppSupabase();
+  if (client) {
+    try {
+      const { data: { session } } = await client.auth.getSession();
+      if (session && session.user && session.user.email) {
+        const email = session.user.email;
+        const namePart = email.split("@")[0].replace(/\./g, " ");
+        const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+        const role = email.toLowerCase().includes("aluno") ? "Aluno CPS" : "Docente CPS";
+        saveUserProfile({
+          name: formattedName,
+          role: role,
+          email: email
+        });
+      }
+    } catch (e) {
+      console.warn("Erro ao buscar sessão no app:", e);
+    }
+  }
+
+  const logoutLink = document.querySelector(".logout-link");
+  if (logoutLink) {
+    logoutLink.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (client) {
+        try {
+          await client.auth.signOut();
+        } catch (err) {
+          console.warn("Erro ao deslogar do Supabase:", err);
+        }
+      }
+      window.location.href = "index.html";
+    });
+  }
+}
+
 loadSettings();
 applyUserProfile();
+initAuthAndLogout();
 updateUI();
 switchView("inicio");
 
