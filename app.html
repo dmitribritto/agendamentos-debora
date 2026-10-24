@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETEC Antônio Furlan - Painel de Agendamentos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand-box">
+          <img src="img/logo.png" alt="A" class="brand-symbol">
+        </div>
+        <nav class="nav-menu">
+          <button type="button" class="nav-link active" data-view="inicio">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Início</span>
+          </button>
+
+          <button type="button" class="nav-link" data-view="agenda">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Agenda</span>
+          </button>
+
+          <button type="button" class="nav-link" data-view="minhas-aulas">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>Minhas aulas</span>
+            <span class="nav-counter" id="nav-counter">0</span>
+          </button>
+
+          <button type="button" class="nav-link" data-view="configuracoes">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>Configurações</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-card">
+          <div class="user-avatar">MR</div>
+          <div class="user-meta">
+            <span class="user-name">Prof. Marcelo</span>
+            <span class="user-role">Docente CPS</span>
+          </div>
+          <a href="index.html" class="logout-link" title="Sair">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-viewport">
+      <header class="dashboard-header">
+        <div class="header-titles">
+          <h1 id="page-title">Painel de Agendamentos</h1>
+          <span class="header-pill" id="page-subtitle">11 de setembro, 2026</span>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="action-btn outline-btn" id="btn-header-agenda">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Ver agenda</span>
+          </button>
+          <button type="button" class="action-btn primary-btn" id="btn-open-modal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Agendar espaço</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="content-body">
+        <section class="view-panel active" id="view-inicio">
+          <div class="dashboard-grid">
+            <div class="dashboard-left">
+              <div class="panel-box">
+                <div class="panel-header">
+                  <div class="panel-title">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>Horários de hoje</span>
+                  </div>
+                  <div class="period-tabs" data-target="inicio">
+                    <button type="button" class="period-btn active" data-period="manha">Manhã</button>
+                    <button type="button" class="period-btn" data-period="tarde">Tarde</button>
+                    <button type="button" class="period-btn" data-period="noite">Noite</button>
+                  </div>
+                </div>
+
+                <div class="table-container">
+                  <table class="schedule-table">
+                    <thead>
+                      <tr>
+                        <th>Aula / horário</th>
+                        <th>Espaço</th>
+                        <th class="align-right">Situação</th>
+                      </tr>
+                    </thead>
+                    <tbody id="today-schedule-body"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="today-reservations-section">
+                <div class="sub-header">
+                  <div class="sub-title">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                    <span>Suas reservas de hoje</span>
+                  </div>
+                  <span class="sub-date" id="today-date-indicator">11 de setembro</span>
+                </div>
+                <div class="cards-grid" id="today-reservations-container"></div>
+              </div>
+            </div>
+
+            <div class="dashboard-right">
+              <div class="panel-box notices-panel">
+                <div class="panel-header">
+                  <div class="panel-title">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span>Avisos</span>
+                  </div>
+                  <button type="button" class="text-action-btn" id="btn-mark-notices-read">Todos lidos</button>
+                </div>
+
+                <div class="notices-list" id="notices-list">
+                  <div class="notice-item">
+                    <div class="notice-icon icon-success">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <div class="notice-content">
+                      <span class="notice-title">Sistema de agendamento pronto</span>
+                      <p class="notice-desc">Você pode começar a realizar seus agendamentos para a Sala Maker e a Biblioteca.</p>
+                      <span class="notice-time">Agora</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="notices-footer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>Todos os avisos foram lidos</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view-panel" id="view-agenda">
+          <div class="agenda-layout">
+            <div class="week-tabs" id="agenda-week-tabs">
+              <button type="button" class="week-tab active" data-day="seg">
+                <span class="day-abbr">Seg</span>
+                <span class="day-date">14/09</span>
+              </button>
+              <button type="button" class="week-tab" data-day="ter">
+                <span class="day-abbr">Ter</span>
+                <span class="day-date">15/09</span>
+              </button>
+              <button type="button" class="week-tab" data-day="qua">
+                <span class="day-abbr">Qua</span>
+                <span class="day-date">16/09</span>
+              </button>
+              <button type="button" class="week-tab" data-day="qui">
+                <span class="day-abbr">Qui</span>
+                <span class="day-date">17/09</span>
+              </button>
+              <button type="button" class="week-tab" data-day="sex">
+                <span class="day-abbr">Sex</span>
+                <span class="day-date">18/09</span>
+              </button>
+            </div>
+
+            <div class="panel-box agenda-panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span id="agenda-current-day-label">Seg, 14/09</span>
+                </div>
+                <div class="period-tabs" data-target="agenda">
+                  <button type="button" class="period-btn active" data-period="manha">Manhã</button>
+                  <button type="button" class="period-btn" data-period="tarde">Tarde</button>
+                  <button type="button" class="period-btn" data-period="noite">Noite</button>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table class="schedule-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 25%;">Aula / horário</th>
+                      <th style="width: 37.5%;">Sala Maker</th>
+                      <th style="width: 37.5%;">Biblioteca</th>
+                    </tr>
+                  </thead>
+                  <tbody id="agenda-schedule-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view-panel" id="view-minhas-aulas">
+          <div class="my-classes-layout">
+            <div class="section-group">
+              <div class="sub-header">
+                <div class="sub-title">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                  </svg>
+                  <span>Próximas reservas</span>
+                </div>
+              </div>
+              <div class="cards-grid" id="my-classes-cards-container"></div>
+            </div>
+
+            <div class="section-group">
+              <div class="sub-header">
+                <div class="sub-title">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                  </svg>
+                  <span>Rotinas recorrentes</span>
+                </div>
+              </div>
+              <div class="panel-box recurring-box" id="recurring-routines-container"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view-panel" id="view-configuracoes">
+          <div class="settings-grid">
+            <div class="panel-box settings-card">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                  </svg>
+                  <span>Avisos</span>
+                </div>
+              </div>
+              <div class="settings-list">
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Reserva confirmada</span>
+                    <span class="setting-desc">Avisar quando uma reserva for aprovada.</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="cfg-reserva-confirmada" checked>
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Reserva alterada ou cancelada</span>
+                    <span class="setting-desc">Avisar sobre remarcações e manutenções.</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="cfg-reserva-alterada" checked>
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Receber também por e-mail</span>
+                    <span class="setting-desc">Cópia dos avisos no seu e-mail institucional.</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="cfg-receber-email">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-box settings-card">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <span>Acessibilidade</span>
+                </div>
+              </div>
+              <div class="settings-list">
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Modo escuro</span>
+                    <span class="setting-desc">Altera a aparência para tons escuros.</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="cfg-modo-escuro">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Alto contraste</span>
+                    <span class="setting-desc">Aumenta o contraste entre os textos e os fundos.</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="cfg-alto-contraste">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Texto maior</span>
+                    <span class="setting-desc">Aumenta o tamanho das fontes e melhora a leitura.</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="cfg-texto-maior">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Reduzir animações</span>
+                    <span class="setting-desc">Remove movimentos e transições da tela.</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="cfg-reduzir-animacoes">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Leitura facilitada</span>
+                    <span class="setting-desc">Aumenta o espaçamento de linhas e caracteres.</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="cfg-leitura-facilitada">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Destacar foco e botões</span>
+                    <span class="setting-desc">Exibe contorno evidente nos elementos interativos.</span>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="cfg-destacar-foco">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-box settings-card">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span>Perfil do Usuário</span>
+                </div>
+              </div>
+              <div class="settings-list">
+                <div class="setting-input-group">
+                  <label class="setting-label" for="cfg-user-name">Nome do docente</label>
+                  <input type="text" id="cfg-user-name" class="settings-text-input" placeholder="Ex: Prof. Marcelo">
+                </div>
+                <div class="setting-input-group">
+                  <label class="setting-label" for="cfg-user-role">Cargo ou identificação</label>
+                  <input type="text" id="cfg-user-role" class="settings-text-input" placeholder="Ex: Docente CPS">
+                </div>
+                <div class="setting-actions">
+                  <button type="button" class="action-btn primary-btn" id="btn-save-profile">
+                    <span>Salvar perfil</span>
+                  </button>
+                  <span class="save-status-msg" id="profile-save-status"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-box settings-card">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <span>Tutorial e Ajuda</span>
+                </div>
+              </div>
+              <div class="settings-list">
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Guia interativo</span>
+                    <span class="setting-desc">Reveja o passo a passo de como navegar e agendar os espaços.</span>
+                  </div>
+                  <button type="button" class="action-btn outline-btn" id="btn-restart-tour">
+                    <span>Rever tutorial</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <span class="footer-copy">© 2026 ETEC Antônio Furlan • Centro Paula Souza. Dados de exemplo</span>
+        <div class="footer-links">
+          <a href="#" class="footer-link">Regulamento</a>
+          <a href="#" class="footer-link">Suporte →</a>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-agendamento">
+    <div class="modal-dialog">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div>
+            <h2 class="modal-title">Novo agendamento</h2>
+            <p class="modal-subtitle">Escolha o espaço e uma aula disponível.</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-close-modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form id="form-agendamento">
+        <div class="modal-body-grid">
+          <div class="modal-col-left">
+            <div class="modal-field">
+              <label class="modal-label">Espaço</label>
+              <div class="space-selector">
+                <button type="button" class="space-option active" data-space="Sala Maker">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="9" y1="18" x2="15" y2="18"></line>
+                    <line x1="10" y1="22" x2="14" y2="22"></line>
+                    <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
+                  </svg>
+                  <span>Sala Maker</span>
+                </button>
+                <button type="button" class="space-option" data-space="Biblioteca">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                  </svg>
+                  <span>Biblioteca</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-field">
+              <div class="date-input-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <input type="date" id="modal-date-picker" class="hidden-date-input">
+                <span id="modal-date-display">Hoje, sexta-feira, 23 de outubro</span>
+              </div>
+            </div>
+
+            <div class="modal-field">
+              <label class="modal-label">Período</label>
+              <div class="period-selector">
+                <button type="button" class="period-choice active" data-period="manha">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                  </svg>
+                  <span>Manhã</span>
+                </button>
+                <button type="button" class="period-choice" data-period="tarde">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 18a5 5 0 0 0-10 0"></path>
+                    <line x1="12" y1="9" x2="12" y2="2"></line>
+                    <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                    <line x1="1" y1="18" x2="3" y2="18"></line>
+                    <line x1="21" y1="18" x2="23" y2="18"></line>
+                    <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                    <line x1="23" y1="22" x2="1" y2="22"></line>
+                  </svg>
+                  <span>Tarde</span>
+                </button>
+                <button type="button" class="period-choice" data-period="noite">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                  </svg>
+                  <span>Noite</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-field">
+              <div class="label-with-hint">
+                <label class="modal-label" for="modal-desc">Descrição da atividade</label>
+                <span class="label-hint">(opcional)</span>
+              </div>
+              <textarea id="modal-desc" class="modal-textarea" maxlength="200" placeholder="Ex.: Aula prática, projeto, pesquisa..."></textarea>
+              <div class="char-count"><span id="char-counter">0</span>/200</div>
+            </div>
+
+            <div class="recurrence-box">
+              <div class="recurrence-info">
+                <div class="recurrence-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                  </svg>
+                </div>
+                <div>
+                  <span class="recurrence-title">Repetir semanalmente <small>(opcional)</small></span>
+                  <span class="recurrence-subtitle">Selecione os dias da semana e o término da recorrência.</span>
+                </div>
+              </div>
+              <label class="switch-toggle">
+                <input type="checkbox" id="modal-recurrence-toggle">
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+
+            <div class="recurrence-options" id="recurrence-options" style="display: none;">
+              <div class="weekdays-check">
+                <label><input type="checkbox" name="recurrence-day" value="seg"> Seg</label>
+                <label><input type="checkbox" name="recurrence-day" value="ter"> Ter</label>
+                <label><input type="checkbox" name="recurrence-day" value="qua"> Qua</label>
+                <label><input type="checkbox" name="recurrence-day" value="qui"> Qui</label>
+                <label><input type="checkbox" name="recurrence-day" value="sex"> Sex</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-col-right">
+            <h3 class="slots-heading" id="slots-heading">Aulas disponíveis – Manhã</h3>
+            <div class="slots-list" id="modal-slots-list"></div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" id="btn-cancel-modal">Cancelar</button>
+          <button type="submit" class="btn-confirm" id="btn-confirm-modal">Confirmar reserva</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-detalhes-reserva">
+    <div class="modal-dialog modal-dialog-sm">
+      <div class="modal-top">
+        <div class="modal-title-group">
+          <div class="modal-icon-badge" id="detalhes-badge-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div>
+            <h2 class="modal-title">Detalhes da Reserva</h2>
+            <p class="modal-subtitle">Informações do espaço e responsável</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="btn-close-detalhes">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="detalhes-corpo">
+        <div class="detalhes-card-info">
+          <div class="detalhes-row">
+            <span class="detalhes-label">Espaço reservado</span>
+            <span class="tag-space" id="detalhes-espaco">Sala Maker</span>
+          </div>
+          <div class="detalhes-row">
+            <span class="detalhes-label">Data e Horário</span>
+            <span class="detalhes-valor" id="detalhes-horario">1ª aula · 07:10 – 08:00</span>
+          </div>
+          <div class="detalhes-row">
+            <span class="detalhes-label">Situação</span>
+            <span class="status-badge status-confirmed">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Confirmada
+            </span>
+          </div>
+        </div>
+
+        <div class="detalhes-docente-box">
+          <div class="detalhes-label">Agendado por</div>
+          <div class="docente-profile-row">
+            <div class="user-avatar" id="detalhes-avatar">PM</div>
+            <div class="user-meta">
+              <span class="user-name" id="detalhes-nome-docente">Prof. Marcelo</span>
+              <span class="user-role" id="detalhes-cargo-docente">Docente CPS</span>
+            </div>
+            <span class="owner-pill" id="detalhes-owner-pill" style="display: none;">Sua reserva</span>
+          </div>
+        </div>
+
+        <div class="detalhes-atividade-box">
+          <div class="detalhes-label">Atividade programada</div>
+          <p class="detalhes-atividade-texto" id="detalhes-atividade">Robótica & Internet das Coisas</p>
+        </div>
+      </div>
+
+      <div class="modal-footer detalhes-footer">
+        <button type="button" class="btn-cancel" id="btn-fechar-detalhes">Fechar</button>
+        <button type="button" class="btn-cancel-reserva" id="btn-cancelar-reserva-detalhes" style="display: none;">Cancelar reserva</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tour-backdrop" id="tour-backdrop" style="display: none;">
+    <div class="tour-spotlight" id="tour-spotlight"></div>
+    <div class="tour-card" id="tour-card">
+      <div class="tour-header">
+        <span class="tour-step-badge" id="tour-step-badge">Passo 1 de 4</span>
+        <button type="button" class="tour-close-btn" id="btn-skip-tour">✕</button>
+      </div>
+      <h3 class="tour-title" id="tour-title">Bem-vindo ao Sistema</h3>
+      <p class="tour-description" id="tour-description">Conheça as principais funções para gerenciar os espaços da escola com facilidade.</p>
+      <div class="tour-footer">
+        <button type="button" class="tour-btn tour-btn-secondary" id="btn-prev-tour">Anterior</button>
+        <div class="tour-actions-right">
+          <button type="button" class="tour-btn tour-btn-primary" id="btn-next-tour">Próximo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
