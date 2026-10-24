@@ -293,3 +293,58 @@ authForm.addEventListener("submit", async (e) => {
     }
   }
 });
+
+// Acesso Rápido - Conta Dimitri (sem necessidade de digitar e-mail ou senha)
+const btnQuickAccess = document.getElementById("btn-quick-access");
+if (btnQuickAccess) {
+  btnQuickAccess.addEventListener("click", async () => {
+    const DIMITRI_EMAIL = "dguerrask@gmail.com";
+    const DIMITRI_NAME = "Dimitri";
+    const DIMITRI_PASS = "123456";
+
+    btnQuickAccess.style.pointerEvents = "none";
+    btnQuickAccess.style.opacity = "0.7";
+    btnQuickAccess.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+      <span>Acessando...</span>
+    `;
+
+    // 1. Salvar perfil para uso imediato no sistema
+    try {
+      localStorage.setItem("etec_usuario_perfil", JSON.stringify({
+        name: DIMITRI_NAME,
+        role: "Docente CPS",
+        email: DIMITRI_EMAIL
+      }));
+    } catch (e) {
+      console.warn("Erro ao salvar perfil local:", e);
+    }
+
+    // 2. Tentar autenticação em segundo plano no Supabase (se disponível, sem bloquear)
+    const client = getSupabase();
+    if (client) {
+      try {
+        const { error } = await client.auth.signInWithPassword({
+          email: DIMITRI_EMAIL,
+          password: DIMITRI_PASS
+        });
+
+        // Se a conta ainda não existir no Supabase, tenta cadastrar
+        if (error && (error.message.includes("Invalid login credentials") || error.message.includes("User not found"))) {
+          await client.auth.signUp({
+            email: DIMITRI_EMAIL,
+            password: DIMITRI_PASS
+          });
+        }
+      } catch (err) {
+        console.warn("Tentativa de login Supabase em segundo plano:", err);
+      }
+    }
+
+    // 3. Entra diretamente no sistema
+    window.location.href = "app.html";
+  });
+}
+

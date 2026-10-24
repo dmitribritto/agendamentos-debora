@@ -1130,6 +1130,9 @@ async function initAuthAndLogout() {
   if (logoutLink) {
     logoutLink.addEventListener("click", async (e) => {
       e.preventDefault();
+      try {
+        localStorage.removeItem("etec_usuario_perfil");
+      } catch (err) {}
       if (client) {
         try {
           await client.auth.signOut();
