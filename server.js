@@ -14,12 +14,63 @@ if (!fs.existsSync(DATA_DIR)) {
 
 let lastServerUpdate = Date.now();
 
+// Harmoniza as reservas garantindo que cada autor tenha seu nome e cargo mais recente unificado em todas as suas reservas
+function harmonizeReservations(list) {
+  if (!Array.isArray(list)) return list;
+  const latestByAuthor = new Map();
+  list.forEach((r) => {
+    if (r && r.authorId && r.authorName) {
+      const prev = latestByAuthor.get(r.authorId);
+      const rTime = r.createdAt ? new Date(r.createdAt).getTime() : 0;
+      if (!prev || rTime >= prev.time) {
+        latestByAuthor.set(r.authorId, {
+          name: r.authorName.trim(),
+          role: r.authorRole ? r.authorRole.trim() : 'Docente CPS',
+          time: rTime
+        });
+      }
+    }
+  });
+
+  const knownNameMap = new Map();
+  const anaLatest = latestByAuthor.get('user_anacarol');
+  if (anaLatest) {
+    knownNameMap.set('ana carol', anaLatest);
+    knownNameMap.set('carol', anaLatest);
+  }
+  const dimitriLatest = latestByAuthor.get('user_dimitri');
+  if (dimitriLatest) {
+    knownNameMap.set('dimitri', dimitriLatest);
+  }
+
+  return list.map((r) => {
+    if (!r) return r;
+    let authorInfo = null;
+    if (r.authorId && latestByAuthor.has(r.authorId)) {
+      authorInfo = latestByAuthor.get(r.authorId);
+    } else if (r.authorName && knownNameMap.has(r.authorName.trim().toLowerCase())) {
+      authorInfo = knownNameMap.get(r.authorName.trim().toLowerCase());
+    }
+
+    if (authorInfo && authorInfo.name) {
+      return {
+        ...r,
+        authorName: authorInfo.name,
+        authorRole: authorInfo.role || r.authorRole || 'Docente CPS',
+        authorId: r.authorId || (authorInfo === anaLatest ? 'user_anacarol' : 'user_dimitri')
+      };
+    }
+    return r;
+  });
+}
+
 // Read existing reservations from file or start empty
 function readReservationsFromFile() {
   try {
     if (fs.existsSync(DATA_FILE)) {
       const content = fs.readFileSync(DATA_FILE, 'utf-8');
-      return JSON.parse(content);
+      const parsed = JSON.parse(content);
+      return harmonizeReservations(parsed);
     }
   } catch (e) {}
   return [];
@@ -55,6 +106,52 @@ const server = http.createServer((req, res) => {
   const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const reqPath = urlObj.pathname;
 
+  // Endpoint dedicado para atualização de perfil do usuário e propagação automática de nome
+  if (reqPath === '/api/update-profile' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const { userId, name, role, oldName } = JSON.parse(body);
+        if (userId && name) {
+          const normOld = (oldName || '').trim().toLowerCase();
+          const newName = name.trim();
+          const newRole = role ? role.trim() : 'Docente CPS';
+
+          serverReservations = serverReservations.map(r => {
+            if (!r) return r;
+            const matchId = r.authorId === userId;
+            const matchOld = normOld && r.authorName && r.authorName.trim().toLowerCase() === normOld;
+            const matchKnownAna = userId === 'user_anacarol' && r.authorName && (r.authorName.trim().toLowerCase() === 'ana carol' || r.authorName.trim().toLowerCase() === 'carol');
+            const matchKnownDimitri = userId === 'user_dimitri' && r.authorName && (r.authorName.trim().toLowerCase() === 'dimitri' || r.authorName.trim().toLowerCase() === 'jow');
+
+            if (matchId || matchOld || matchKnownAna || matchKnownDimitri) {
+              return {
+                ...r,
+                authorName: newName,
+                authorRole: newRole,
+                authorId: userId
+              };
+            }
+            return r;
+          });
+
+          serverReservations = harmonizeReservations(serverReservations);
+          lastServerUpdate = Date.now();
+          try {
+            fs.writeFileSync(DATA_FILE, JSON.stringify(serverReservations, null, 2), 'utf-8');
+          } catch (e) {}
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: true, reservations: serverReservations, lastUpdated: lastServerUpdate }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: 'Erro ao atualizar perfil' }));
+      }
+    });
+    return;
+  }
+
   // Real-time API for synchronization across all users/browsers
   if (reqPath === '/api/reservations') {
     if (req.method === 'GET') {
@@ -76,7 +173,7 @@ const server = http.createServer((req, res) => {
         try {
           const parsed = JSON.parse(body);
           if (Array.isArray(parsed.reservations)) {
-            serverReservations = parsed.reservations;
+            serverReservations = harmonizeReservations(parsed.reservations);
             lastServerUpdate = Date.now();
             try {
               fs.writeFileSync(DATA_FILE, JSON.stringify(serverReservations, null, 2), 'utf-8');

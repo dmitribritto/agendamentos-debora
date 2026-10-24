@@ -124,6 +124,9 @@ function getUserProfile() {
 
 function saveUserProfile(profile) {
   const current = getUserProfile();
+  const oldName = current && current.name ? current.name.trim() : "";
+  const oldRole = current && current.role ? current.role.trim() : "";
+
   let uid = (profile && profile.userId) || (current && current.userId);
   if (profile && (profile.name === "Dimitri" || profile.email === "dguerrask@gmail.com")) uid = "user_dimitri";
   if (profile && (profile.name === "Ana Carol" || (profile.email && profile.email.includes("anacarol")))) uid = "user_anacarol";
@@ -137,6 +140,138 @@ function saveUserProfile(profile) {
   sessionStorage.setItem(USER_PROFILE_KEY, JSON.stringify(merged));
   localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(merged));
   applyUserProfile(merged);
+
+  // Atualiza localmente todas as reservas pertencentes a este usuário
+  updateReservationsAuthor(merged, oldName);
+
+  // Notifica o servidor para atualizar o arquivo persistente e propagar a todas as abas
+  fetch("/api/update-profile", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: merged.userId,
+      name: merged.name,
+      role: merged.role,
+      oldName: oldName
+    })
+  }).then(async (res) => {
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.reservations)) {
+        localReservationsLastUpdated = data.lastUpdated || Date.now();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.reservations));
+        updateUI();
+      }
+    }
+  }).catch(() => {});
+}
+
+// Atualiza o nome do autor em todas as reservas que pertencem a este usuário
+function updateReservationsAuthor(profile, oldName = "") {
+  if (!profile || !profile.name) return;
+  const list = getReservations();
+  if (!Array.isArray(list) || list.length === 0) return;
+
+  const targetUserId = profile.userId;
+  const newName = profile.name.trim();
+  const newRole = profile.role ? profile.role.trim() : null;
+  const oldNameNorm = (oldName || "").trim().toLowerCase();
+
+  let modified = false;
+
+  const updatedList = list.map((res) => {
+    if (!res) return res;
+
+    // Identifica se a reserva pertence ao usuário atual:
+    const matchById = Boolean(targetUserId && res.authorId && res.authorId === targetUserId);
+    const matchByOldName = Boolean(oldNameNorm && res.authorName && res.authorName.trim().toLowerCase() === oldNameNorm);
+
+    // Fallbacks para as contas do sistema
+    const isUserDimitriAccount = targetUserId === "user_dimitri" || (profile.email && profile.email.toLowerCase() === "dguerrask@gmail.com");
+    const matchKnownDimitri = isUserDimitriAccount && (
+      res.authorId === "user_dimitri" ||
+      (res.authorName && (res.authorName.trim().toLowerCase() === "dimitri" || res.authorName.trim().toLowerCase() === "jow"))
+    );
+
+    const isUserAnaAccount = targetUserId === "user_anacarol" || (profile.email && profile.email.toLowerCase().includes("anacarol"));
+    const matchKnownAna = isUserAnaAccount && (
+      res.authorId === "user_anacarol" ||
+      (res.authorName && (res.authorName.trim().toLowerCase() === "ana carol" || res.authorName.trim().toLowerCase() === "carol" || res.authorName.trim().toLowerCase() === "porra"))
+    );
+
+    if (matchById || matchByOldName || matchKnownDimitri || matchKnownAna) {
+      const nameNeedsUpdate = res.authorName !== newName;
+      const roleNeedsUpdate = Boolean(newRole && res.authorRole !== newRole);
+      const idNeedsUpdate = Boolean(targetUserId && res.authorId !== targetUserId);
+
+      if (nameNeedsUpdate || roleNeedsUpdate || idNeedsUpdate) {
+        modified = true;
+        return {
+          ...res,
+          authorName: newName,
+          authorRole: newRole || res.authorRole || profile.role || "Docente CPS",
+          authorId: targetUserId || res.authorId
+        };
+      }
+    }
+    return res;
+  });
+
+  if (modified) {
+    saveReservations(updatedList);
+    updateUI();
+  }
+}
+
+// Diretório dinâmico com o nome mais recente de cada usuário
+function getAuthorDirectory() {
+  const reservations = getReservations();
+  const dir = {
+    user_anacarol: { name: "Ana Carol", role: "Docente CPS" },
+    user_dimitri: { name: "Dimitri", role: "Docente CPS" }
+  };
+
+  // Prioridade para o perfil ativo logado
+  const myProfile = getUserProfile();
+  if (myProfile && myProfile.userId && myProfile.name) {
+    dir[myProfile.userId] = {
+      name: myProfile.name.trim(),
+      role: myProfile.role || "Docente CPS"
+    };
+  }
+
+  // Mapeia todas as reservas encontradas para pegar a versão mais recente de cada autor
+  reservations.forEach((r) => {
+    if (r && r.authorId && r.authorName) {
+      const prev = dir[r.authorId];
+      const rTime = r.createdAt ? new Date(r.createdAt).getTime() : 0;
+      if (!prev || (rTime && prev.time && rTime >= prev.time) || !prev.time) {
+        dir[r.authorId] = {
+          name: r.authorName.trim(),
+          role: r.authorRole ? r.authorRole.trim() : "Docente CPS",
+          time: rTime
+        };
+      }
+    }
+  });
+
+  return dir;
+}
+
+// Retorna sempre o nome de exibição mais atualizado e correto para a reserva
+function getAuthorDisplayName(res) {
+  if (!res) return "Docente ETEC";
+  const myProfile = getUserProfile();
+  if (isOwnReservation(res, myProfile)) {
+    return myProfile.name;
+  }
+  if (res.authorId) {
+    const dir = getAuthorDirectory();
+    if (dir[res.authorId] && dir[res.authorId].name) {
+      return dir[res.authorId].name;
+    }
+  }
+  return res.authorName || "Docente ETEC";
 }
 
 // Compare by unique userId (preferred) or fallback to name for old reservations
@@ -149,8 +284,16 @@ function isOwnReservation(reservation, profile) {
   if (reservation.authorName && profile.name) {
     const rName = reservation.authorName.trim().toLowerCase();
     const pName = profile.name.trim().toLowerCase();
-    if (!rName || !pName) return false;
-    return rName === pName;
+    if (rName && pName && rName === pName) return true;
+  }
+  // Fallback for known test users if legacy reservation
+  if (profile.userId === "user_dimitri" && reservation.authorName) {
+    const rName = reservation.authorName.trim().toLowerCase();
+    if (rName === "dimitri" || rName === "jow") return true;
+  }
+  if (profile.userId === "user_anacarol" && reservation.authorName) {
+    const rName = reservation.authorName.trim().toLowerCase();
+    if (rName === "ana carol" || rName === "carol" || rName === "porra") return true;
   }
   return false;
 }
@@ -1005,10 +1148,11 @@ function renderInicio() {
             </button>
           `;
         }
+        const authorNameDisplay = getAuthorDisplayName(res);
         return `
-          <button type="button" class="status-badge status-other-user status-clickable btn-detalhes-slot" data-id="${res.id}" title="Reservada por ${res.authorName || 'outro docente'} — clique para ver detalhes">
+          <button type="button" class="status-badge status-other-user status-clickable btn-detalhes-slot" data-id="${res.id}" title="Reservada por ${authorNameDisplay} — clique para ver detalhes">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>${res.authorName || "Reservada"}</span>
+            <span>${authorNameDisplay}</span>
           </button>
         `;
       }
@@ -1212,10 +1356,11 @@ function renderAgendaWeekly() {
             </button>
           `;
         }
+        const authorNameDisplay = getAuthorDisplayName(res);
         return `
-          <button type="button" class="status-badge status-other-user status-clickable btn-detalhes-slot" data-id="${res.id}" title="Reservada por ${res.authorName || 'outro docente'} — clique para ver detalhes">
+          <button type="button" class="status-badge status-other-user status-clickable btn-detalhes-slot" data-id="${res.id}" title="Reservada por ${authorNameDisplay} — clique para ver detalhes">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>${res.authorName || "Reservada"}</span>
+            <span>${authorNameDisplay}</span>
           </button>
         `;
       }
@@ -1345,10 +1490,11 @@ function renderAgendaDaily() {
             </button>
           `;
         }
+        const authorNameDisplay = getAuthorDisplayName(res);
         return `
-          <button type="button" class="status-badge status-other-user status-clickable btn-detalhes-daily" data-id="${res.id}" title="Reservada por ${res.authorName || 'outro docente'} — clique para ver detalhes">
+          <button type="button" class="status-badge status-other-user status-clickable btn-detalhes-daily" data-id="${res.id}" title="Reservada por ${authorNameDisplay} — clique para ver detalhes">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>${res.authorName || "Reservada"}</span>
+            <span>${authorNameDisplay}</span>
           </button>
         `;
       }
@@ -1791,26 +1937,50 @@ if (cfgReceberEmail) cfgReceberEmail.addEventListener("change", saveCurrentSetti
 
 const btnSaveProfile = document.getElementById("btn-save-profile");
 const profileStatusEl = document.getElementById("profile-save-status");
+const inputCfgName = document.getElementById("cfg-user-name");
+const inputCfgRole = document.getElementById("cfg-user-role");
+
+function handleProfileSaveAction() {
+  const nameVal = inputCfgName ? inputCfgName.value.trim() : "";
+  const roleVal = inputCfgRole ? inputCfgRole.value.trim() : "";
+
+  const newName = nameVal || "Docente ETEC";
+  const newRole = roleVal || "Docente CPS";
+
+  saveUserProfile({ name: newName, role: newRole });
+
+  if (profileStatusEl) {
+    profileStatusEl.textContent = "Perfil atualizado!";
+    setTimeout(() => {
+      profileStatusEl.textContent = "";
+    }, 2500);
+  }
+
+  updateUI();
+}
 
 if (btnSaveProfile) {
-  btnSaveProfile.addEventListener("click", () => {
-    const nameInput = document.getElementById("cfg-user-name");
-    const roleInput = document.getElementById("cfg-user-role");
+  btnSaveProfile.addEventListener("click", handleProfileSaveAction);
+}
 
-    const newName = nameInput.value.trim() || "Prof. Marcelo";
-    const newRole = roleInput.value.trim() || "Docente CPS";
-
-    saveUserProfile({ name: newName, role: newRole });
-
-    if (profileStatusEl) {
-      profileStatusEl.textContent = "Perfil atualizado!";
-      setTimeout(() => {
-        profileStatusEl.textContent = "";
-      }, 2500);
+if (inputCfgName) {
+  inputCfgName.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleProfileSaveAction();
     }
-
-    updateUI();
   });
+  inputCfgName.addEventListener("change", handleProfileSaveAction);
+}
+
+if (inputCfgRole) {
+  inputCfgRole.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleProfileSaveAction();
+    }
+  });
+  inputCfgRole.addEventListener("change", handleProfileSaveAction);
 }
 
 const modalDetalhes = document.getElementById("modal-detalhes-reserva");
@@ -1835,14 +2005,15 @@ function openReservationDetails(id) {
   const horarioEl = document.getElementById("detalhes-horario");
   if (horarioEl) horarioEl.textContent = `${res.slotLabel} · ${res.slotTime}`;
 
+  const authorNameDisplay = getAuthorDisplayName(res);
   const nomeDocenteEl = document.getElementById("detalhes-nome-docente");
-  if (nomeDocenteEl) nomeDocenteEl.textContent = res.authorName || "Docente ETEC";
+  if (nomeDocenteEl) nomeDocenteEl.textContent = authorNameDisplay;
 
   const cargoDocenteEl = document.getElementById("detalhes-cargo-docente");
   if (cargoDocenteEl) cargoDocenteEl.textContent = res.authorRole || "Docente CPS";
 
   const avatarEl = document.getElementById("detalhes-avatar");
-  if (avatarEl) avatarEl.textContent = getInitials(res.authorName || "DE");
+  if (avatarEl) avatarEl.textContent = getInitials(authorNameDisplay);
 
   const atividadeEl = document.getElementById("detalhes-atividade");
   if (atividadeEl) atividadeEl.textContent = res.description || "Atividade de aula";
@@ -2131,10 +2302,34 @@ async function syncReservationsFromServer(force = false) {
 
       if (force || serverTime > localReservationsLastUpdated || (currentLocal.length === 0 && data.reservations.length > 0)) {
         localReservationsLastUpdated = serverTime;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.reservations));
+
+        // Mesclagem inteligente: preserva reservas locais que ainda não foram enviadas ao servidor
+        const map = new Map();
+        data.reservations.forEach((r) => map.set(r.id, r));
+        currentLocal.forEach((r) => {
+          if (!map.has(r.id)) {
+            map.set(r.id, r);
+          }
+        });
+        const mergedList = Array.from(map.values());
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedList));
+
+        // Reconcilia o nome do autor em reservas antigas para o perfil ativo
+        const profile = getUserProfile();
+        updateReservationsAuthor(profile);
+
         updateUI();
         if (modal && modal.classList.contains("active")) {
           renderModalSlots();
+        }
+
+        if (mergedList.length > data.reservations.length) {
+          fetch("/api/reservations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reservations: mergedList })
+          }).catch(() => {});
         }
       } else if (currentLocal.length > 0 && data.reservations.length === 0) {
         fetch("/api/reservations", {
@@ -2180,6 +2375,7 @@ syncReservationsFromServer(true);
 loadSettings();
 applyUserProfile();
 initAuthAndLogout();
+updateReservationsAuthor(getUserProfile(), "Dimitri");
 updateUI();
 switchView("inicio");
 

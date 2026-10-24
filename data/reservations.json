@@ -11,7 +11,7 @@
     "description": "Aula da Carol",
     "grade": "Turma ETEC",
     "authorName": "Ana Carol",
-    "authorRole": "Docente CPS",
+    "authorRole": "Prof. Chata",
     "authorId": "user_anacarol",
     "isRecurrent": false,
     "createdAt": "2026-10-24T13:07:44.225Z"
@@ -32,5 +32,22 @@
     "authorId": "user_dimitri",
     "isRecurrent": false,
     "createdAt": "2026-10-24T13:22:12.353Z"
+  },
+  {
+    "id": "res_1792849426625",
+    "space": "Biblioteca",
+    "day": "seg",
+    "date": "2026-10-26",
+    "period": "manha",
+    "slotIndex": 1,
+    "slotLabel": "2ª aula",
+    "slotTime": "08:00 – 08:50",
+    "description": "Pesquisa na Biblioteca",
+    "grade": "Turma ETEC",
+    "authorName": "Ana Carol",
+    "authorRole": "Prof. Chata",
+    "authorId": "user_anacarol",
+    "isRecurrent": false,
+    "createdAt": "2026-10-24T13:43:46.625Z"
   }
 ]
