@@ -91,12 +91,15 @@ function applyUserProfile(profile) {
   const userNameEl = document.querySelector(".user-meta .user-name");
   const userRoleEl = document.querySelector(".user-meta .user-role");
   const userAvatarEl = document.querySelector(".sidebar-bottom .user-avatar");
+  const mobileAvatarEl = document.getElementById("mobile-user-avatar");
   const inputName = document.getElementById("cfg-user-name");
   const inputRole = document.getElementById("cfg-user-role");
 
   if (userNameEl) userNameEl.textContent = p.name;
   if (userRoleEl) userRoleEl.textContent = p.role;
-  if (userAvatarEl) userAvatarEl.textContent = getInitials(p.name);
+  const initials = getInitials(p.name);
+  if (userAvatarEl) userAvatarEl.textContent = initials;
+  if (mobileAvatarEl) mobileAvatarEl.textContent = initials;
   if (inputName) inputName.value = p.name;
   if (inputRole) inputRole.value = p.role;
 }
@@ -1126,8 +1129,7 @@ async function initAuthAndLogout() {
     }
   }
 
-  const logoutLink = document.querySelector(".logout-link");
-  if (logoutLink) {
+  document.querySelectorAll(".logout-link").forEach((logoutLink) => {
     logoutLink.addEventListener("click", async (e) => {
       e.preventDefault();
       try {
@@ -1141,6 +1143,13 @@ async function initAuthAndLogout() {
         }
       }
       window.location.href = "index.html";
+    });
+  });
+
+  const mobileAvatarEl = document.getElementById("mobile-user-avatar");
+  if (mobileAvatarEl) {
+    mobileAvatarEl.addEventListener("click", () => {
+      switchView("configuracoes");
     });
   }
 }
