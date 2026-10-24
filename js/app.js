@@ -35,6 +35,11 @@ const STORAGE_KEY = "etec_reservas_dados";
 const NOTICES_KEY = "etec_avisos_dados";
 const SETTINGS_KEY = "etec_config_dados";
 
+const syncChannel = (typeof window !== "undefined" && "BroadcastChannel" in window)
+  ? new BroadcastChannel("etec_sync_reservations")
+  : null;
+let localReservationsLastUpdated = Date.now();
+
 function getReservations() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -45,7 +50,22 @@ function getReservations() {
 }
 
 function saveReservations(list) {
+  localReservationsLastUpdated = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+
+  // 1. Instant sync across all tabs in the same browser (0ms)
+  if (syncChannel) {
+    try {
+      syncChannel.postMessage({ type: "RESERVATIONS_UPDATED", timestamp: localReservationsLastUpdated });
+    } catch (e) {}
+  }
+
+  // 2. Persist to server API in background for cross-browser / cross-window sync
+  fetch("/api/reservations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reservations: list })
+  }).catch(() => {});
 }
 
 function getNotices() {
@@ -66,15 +86,73 @@ const TOUR_STORAGE_KEY = "etec_tutorial_concluido";
 
 function getUserProfile() {
   try {
-    const raw = localStorage.getItem(USER_PROFILE_KEY);
-    if (raw) return JSON.parse(raw);
+    // 1. Check sessionStorage first (isolated per tab: allows Dimitri and Ana Carol to test simultaneously in 2 tabs!)
+    const sessionRaw = sessionStorage.getItem(USER_PROFILE_KEY);
+    if (sessionRaw) {
+      const parsed = JSON.parse(sessionRaw);
+      if (parsed && parsed.name) {
+        if (parsed.name === "Dimitri" || parsed.email === "dguerrask@gmail.com") parsed.userId = "user_dimitri";
+        else if (parsed.name === "Ana Carol" || (parsed.email && parsed.email.includes("anacarol"))) parsed.userId = "user_anacarol";
+        else if (!parsed.userId) parsed.userId = "user_" + Date.now();
+        return parsed;
+      }
+    }
+    // 2. Fallback to localStorage
+    const localRaw = localStorage.getItem(USER_PROFILE_KEY);
+    if (localRaw) {
+      const parsed = JSON.parse(localRaw);
+      if (parsed && parsed.name) {
+        if (parsed.name === "Dimitri" || parsed.email === "dguerrask@gmail.com") parsed.userId = "user_dimitri";
+        else if (parsed.name === "Ana Carol" || (parsed.email && parsed.email.includes("anacarol"))) parsed.userId = "user_anacarol";
+        else if (!parsed.userId) parsed.userId = "user_" + Date.now();
+        sessionStorage.setItem(USER_PROFILE_KEY, JSON.stringify(parsed));
+        return parsed;
+      }
+    }
   } catch (e) {}
-  return { name: "Prof. Marcelo", role: "Docente CPS" };
+
+  const defaultProfile = {
+    name: "Dimitri",
+    role: "Docente CPS",
+    email: "dguerrask@gmail.com",
+    userId: "user_dimitri"
+  };
+  sessionStorage.setItem(USER_PROFILE_KEY, JSON.stringify(defaultProfile));
+  localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(defaultProfile));
+  return defaultProfile;
 }
 
 function saveUserProfile(profile) {
-  localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
-  applyUserProfile(profile);
+  const current = getUserProfile();
+  let uid = (profile && profile.userId) || (current && current.userId);
+  if (profile && (profile.name === "Dimitri" || profile.email === "dguerrask@gmail.com")) uid = "user_dimitri";
+  if (profile && (profile.name === "Ana Carol" || (profile.email && profile.email.includes("anacarol")))) uid = "user_anacarol";
+
+  const merged = {
+    ...current,
+    ...profile,
+    userId: uid || ("user_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8))
+  };
+
+  sessionStorage.setItem(USER_PROFILE_KEY, JSON.stringify(merged));
+  localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(merged));
+  applyUserProfile(merged);
+}
+
+// Compare by unique userId (preferred) or fallback to name for old reservations
+function isOwnReservation(reservation, profile) {
+  if (!reservation || !profile) return false;
+  if (reservation.authorId && profile.userId) {
+    return reservation.authorId === profile.userId;
+  }
+  // Fallback for legacy reservations without authorId
+  if (reservation.authorName && profile.name) {
+    const rName = reservation.authorName.trim().toLowerCase();
+    const pName = profile.name.trim().toLowerCase();
+    if (!rName || !pName) return false;
+    return rName === pName;
+  }
+  return false;
 }
 
 function getInitials(name) {
@@ -102,17 +180,99 @@ function applyUserProfile(profile) {
   if (mobileAvatarEl) mobileAvatarEl.textContent = initials;
   if (inputName) inputName.value = p.name;
   if (inputRole) inputRole.value = p.role;
+  if (navCounter) {
+    const myCount = getReservations().filter((r) => isOwnReservation(r, p)).length;
+    navCounter.textContent = myCount;
+  }
 }
+
+const DAY_KEY_MAP = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+
+function getTodayContext() {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 is Sunday, 6 is Saturday
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+  const todayY = now.getFullYear();
+  const todayM = String(now.getMonth() + 1).padStart(2, "0");
+  const todayD = String(now.getDate()).padStart(2, "0");
+  const todayIso = `${todayY}-${todayM}-${todayD}`;
+  const todayDayKey = DAY_KEY_MAP[dayOfWeek];
+
+  // If weekend, next school day is Monday; if weekday, today
+  let activeSchoolDate = new Date(now);
+  let isNextSchoolDay = false;
+
+  if (dayOfWeek === 6) { // Saturday -> Monday (+2)
+    activeSchoolDate.setDate(now.getDate() + 2);
+    isNextSchoolDay = true;
+  } else if (dayOfWeek === 0) { // Sunday -> Monday (+1)
+    activeSchoolDate.setDate(now.getDate() + 1);
+    isNextSchoolDay = true;
+  }
+
+  const schoolY = activeSchoolDate.getFullYear();
+  const schoolM = String(activeSchoolDate.getMonth() + 1).padStart(2, "0");
+  const schoolD = String(activeSchoolDate.getDate()).padStart(2, "0");
+  const schoolIso = `${schoolY}-${schoolM}-${schoolD}`;
+  const schoolDayKey = DAY_KEY_MAP[activeSchoolDate.getDay()];
+
+  return {
+    now,
+    todayIso,
+    todayDayKey,
+    isWeekend,
+    isNextSchoolDay,
+    activeSchoolDate,
+    schoolIso,
+    schoolDayKey
+  };
+}
+
+function getWeekdays() {
+  const ctx = getTodayContext();
+  const monday = new Date(ctx.activeSchoolDate);
+  const day = monday.getDay();
+  monday.setDate(monday.getDate() - (day - 1));
+
+  const keys = ["seg", "ter", "qua", "qui", "sex"];
+  const labels = ["Seg", "Ter", "Qua", "Qui", "Sex"];
+  const fullLabels = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira"];
+
+  return keys.map((key, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const dayNum = String(d.getDate()).padStart(2, "0");
+    const monthNum = String(d.getMonth() + 1).padStart(2, "0");
+    const y = d.getFullYear();
+    return {
+      key: key,
+      label: labels[i],
+      fullLabel: fullLabels[i],
+      dateStr: `${dayNum}/${monthNum}`,
+      isoDate: `${y}-${monthNum}-${dayNum}`,
+      dateObj: d
+    };
+  });
+}
+
+const initialCtx = getTodayContext();
 
 let activeView = "inicio";
 let inicioPeriod = "manha";
+let agendaViewMode = "semanal"; // Padrão: semanal (apenas de seg a sex)
 let agendaPeriod = "manha";
-let agendaDay = "seg";
+let agendaDay = initialCtx.schoolDayKey;
+let agendaDailyDay = initialCtx.schoolDayKey;
+let agendaDailyPeriod = "manha";
+let currentCalendarDate = new Date(); // Inicia dinamicamente com a data/mês atual
 
 let modalSpace = "Sala Maker";
 let modalPeriod = "manha";
 let modalSelectedSlotIndex = 0;
-let modalDay = "seg";
+let modalDay = initialCtx.schoolDayKey;
+let modalSelectedDate = initialCtx.schoolIso;
+let miniCalCurrentMonth = new Date();
 
 const pageTitle = document.getElementById("page-title");
 const pageSubtitle = document.getElementById("page-subtitle");
@@ -129,6 +289,28 @@ const slotsHeading = document.getElementById("slots-heading");
 const recurrenceToggle = document.getElementById("modal-recurrence-toggle");
 const recurrenceOptions = document.getElementById("recurrence-options");
 
+function updateAgendaHeaderSubtitle() {
+  if (agendaViewMode === "semanal") {
+    const weekdays = getWeekdays();
+    const startDay = weekdays[0].dateObj.getDate();
+    const endDay = weekdays[4].dateObj.getDate();
+    const startMonth = weekdays[0].dateObj.toLocaleDateString("pt-BR", { month: "long" });
+    const endMonth = weekdays[4].dateObj.toLocaleDateString("pt-BR", { month: "long" });
+    if (startMonth === endMonth) {
+      pageSubtitle.textContent = `Semana de ${startDay} a ${endDay} de ${startMonth}`;
+    } else {
+      pageSubtitle.textContent = `Semana de ${startDay} de ${startMonth} a ${endDay} de ${endMonth}`;
+    }
+  } else if (agendaViewMode === "diaria") {
+    const weekdays = getWeekdays();
+    const dayObj = weekdays.find((d) => d.key === agendaDailyDay) || weekdays[0];
+    pageSubtitle.textContent = `${dayObj.fullLabel}, ${dayObj.dateStr}`;
+  } else if (agendaViewMode === "mensal") {
+    const monthName = currentCalendarDate.toLocaleDateString("pt-BR", { month: "long" });
+    pageSubtitle.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${currentCalendarDate.getFullYear()}`;
+  }
+}
+
 function switchView(viewName) {
   activeView = viewName;
 
@@ -140,19 +322,34 @@ function switchView(viewName) {
     panel.classList.toggle("active", panel.id === `view-${viewName}`);
   });
 
-  const total = getReservations().length;
+  const agendaSubnav = document.getElementById("agenda-subnav");
+  const btnHeaderAgenda = document.getElementById("btn-header-agenda");
+
+  if (agendaSubnav) {
+    agendaSubnav.style.display = viewName === "agenda" ? "flex" : "none";
+  }
+
+  if (btnHeaderAgenda) {
+    btnHeaderAgenda.style.display = viewName === "agenda" ? "none" : "inline-flex";
+  }
+
+  const profile = getUserProfile();
+  const myTotal = getReservations().filter((r) => isOwnReservation(r, profile)).length;
+  if (navCounter) {
+    navCounter.textContent = myTotal;
+  }
 
   if (viewName === "inicio") {
     pageTitle.textContent = "Painel de Agendamentos";
-    pageSubtitle.textContent = "11 de setembro, 2026";
+    const ctx = getTodayContext();
+    pageSubtitle.textContent = ctx.now.toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
     renderInicio();
   } else if (viewName === "agenda") {
     pageTitle.textContent = "Agenda";
-    pageSubtitle.textContent = "Semana de 14 a 18 de setembro";
-    renderAgenda();
+    switchAgendaViewMode(agendaViewMode);
   } else if (viewName === "minhas-aulas") {
     pageTitle.textContent = "Minhas aulas";
-    pageSubtitle.textContent = `${total} ${total === 1 ? "reserva" : "reservas"}`;
+    pageSubtitle.textContent = `${myTotal} ${myTotal === 1 ? "reserva" : "reservas"}`;
     renderMyClasses();
   } else if (viewName === "configuracoes") {
     pageTitle.textContent = "Configurações";
@@ -192,7 +389,6 @@ modal.addEventListener("click", (e) => {
 function openModal(prefill = {}) {
   modalSpace = prefill.space || "Sala Maker";
   modalPeriod = prefill.period || "manha";
-  modalDay = prefill.day || "seg";
   modalSelectedSlotIndex = typeof prefill.slotIndex === "number" ? prefill.slotIndex : 0;
 
   document.querySelectorAll(".space-option").forEach((btn) => {
@@ -203,17 +399,73 @@ function openModal(prefill = {}) {
     btn.classList.toggle("active", btn.getAttribute("data-period") === modalPeriod);
   });
 
+  // Calculate default valid date
+  const now = new Date();
+  const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  let targetDate = new Date(todayZero);
+  if (prefill.date) {
+    const parts = prefill.date.split("-");
+    targetDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  } else if (prefill.day) {
+    const dayOffsets = { seg: 1, ter: 2, qua: 3, qui: 4, sex: 5 };
+    const wantedDay = dayOffsets[prefill.day];
+    if (wantedDay) {
+      let d = new Date(todayZero);
+      for (let i = 0; i < 7; i++) {
+        if (d.getDay() === wantedDay && d >= todayZero) {
+          targetDate = d;
+          break;
+        }
+        d.setDate(d.getDate() + 1);
+      }
+    }
+  } else {
+    // If today is Saturday (6), move to Monday (+2). If Sunday (0), move to Monday (+1).
+    if (targetDate.getDay() === 6) {
+      targetDate.setDate(targetDate.getDate() + 2);
+    } else if (targetDate.getDay() === 0) {
+      targetDate.setDate(targetDate.getDate() + 1);
+    }
+  }
+
+  const y = targetDate.getFullYear();
+  const m = String(targetDate.getMonth() + 1).padStart(2, "0");
+  const dNum = String(targetDate.getDate()).padStart(2, "0");
+  modalSelectedDate = `${y}-${m}-${dNum}`;
+  modalDay = DAY_KEY_MAP[targetDate.getDay()];
+  miniCalCurrentMonth = new Date(y, targetDate.getMonth(), 1);
+
+  if (modalDatePicker) {
+    modalDatePicker.value = modalSelectedDate;
+  }
+  if (modalDateDisplay) {
+    const formatted = targetDate.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+    modalDateDisplay.textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  }
+
+  // Ensure mini-calendar is closed initially
+  const miniCal = document.getElementById("modal-mini-calendar");
+  const dateBtn = document.getElementById("modal-date-btn");
+  if (miniCal) miniCal.style.display = "none";
+  if (dateBtn) dateBtn.classList.remove("open");
+
   modalDesc.value = "";
   charCounter.textContent = "0";
   recurrenceToggle.checked = false;
   recurrenceOptions.style.display = "none";
 
+  renderMiniCalendar();
   renderModalSlots();
   modal.classList.add("active");
 }
 
 function closeModal() {
   modal.classList.remove("active");
+  const miniCal = document.getElementById("modal-mini-calendar");
+  const dateBtn = document.getElementById("modal-date-btn");
+  if (miniCal) miniCal.style.display = "none";
+  if (dateBtn) dateBtn.classList.remove("open");
 }
 
 document.querySelectorAll(".space-option").forEach((btn) => {
@@ -242,14 +494,145 @@ recurrenceToggle.addEventListener("change", () => {
   recurrenceOptions.style.display = recurrenceToggle.checked ? "block" : "none";
 });
 
-modalDatePicker.addEventListener("change", () => {
-  if (modalDatePicker.value) {
-    const parts = modalDatePicker.value.split("-");
-    const d = new Date(parts[0], parts[1] - 1, parts[2]);
-    const formatted = d.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
-    modalDateDisplay.textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+const modalDateBtn = document.getElementById("modal-date-btn");
+const modalMiniCal = document.getElementById("modal-mini-calendar");
+
+if (modalDateBtn && modalMiniCal) {
+  modalDateBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isVisible = modalMiniCal.style.display === "flex" || modalMiniCal.style.display === "block";
+    modalMiniCal.style.display = isVisible ? "none" : "flex";
+    modalDateBtn.classList.toggle("open", !isVisible);
+    if (!isVisible) {
+      renderMiniCalendar();
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!modalMiniCal.contains(e.target) && !modalDateBtn.contains(e.target)) {
+      modalMiniCal.style.display = "none";
+      modalDateBtn.classList.remove("open");
+    }
+  });
+}
+
+const miniCalPrev = document.getElementById("mini-cal-prev");
+const miniCalNext = document.getElementById("mini-cal-next");
+
+if (miniCalPrev) {
+  miniCalPrev.addEventListener("click", (e) => {
+    e.stopPropagation();
+    miniCalCurrentMonth.setMonth(miniCalCurrentMonth.getMonth() - 1);
+    renderMiniCalendar();
+  });
+}
+
+if (miniCalNext) {
+  miniCalNext.addEventListener("click", (e) => {
+    e.stopPropagation();
+    miniCalCurrentMonth.setMonth(miniCalCurrentMonth.getMonth() + 1);
+    renderMiniCalendar();
+  });
+}
+
+function renderMiniCalendar() {
+  const miniCalDays = document.getElementById("mini-cal-days");
+  const miniCalTitle = document.getElementById("mini-cal-title");
+  if (!miniCalDays) return;
+
+  const year = miniCalCurrentMonth.getFullYear();
+  const month = miniCalCurrentMonth.getMonth();
+
+  if (miniCalTitle) {
+    const mName = miniCalCurrentMonth.toLocaleDateString("pt-BR", { month: "long" });
+    miniCalTitle.textContent = `${mName.charAt(0).toUpperCase() + mName.slice(1)} ${year}`;
   }
-});
+
+  miniCalDays.innerHTML = "";
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const totalDays = lastDay.getDate();
+
+  // Monday = 0 ... Sunday = 6
+  const startingCol = (firstDay.getDay() + 6) % 7;
+
+  // Trailing previous month days (locked)
+  const prevMonthLastDay = new Date(year, month, 0).getDate();
+  for (let i = startingCol - 1; i >= 0; i--) {
+    const dayNum = prevMonthLastDay - i;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mini-cal-day is-other-month is-locked";
+    btn.disabled = true;
+    btn.textContent = dayNum;
+    miniCalDays.appendChild(btn);
+  }
+
+  const today = new Date();
+  const todayZero = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  for (let d = 1; d <= totalDays; d++) {
+    const checkDate = new Date(year, month, d, 0, 0, 0, 0);
+    const dayOfWeek = checkDate.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isPast = checkDate < todayZero;
+    const isLocked = isWeekend || isPast;
+    const isToday = checkDate.getTime() === todayZero.getTime();
+
+    const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const isSelected = modalSelectedDate === iso;
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `mini-cal-day ${isWeekend ? "is-weekend" : ""} ${isPast ? "is-past" : ""} ${isLocked ? "is-locked" : ""} ${isToday ? "is-today" : ""} ${isSelected ? "is-selected" : ""}`;
+    btn.textContent = d;
+
+    if (isLocked) {
+      btn.disabled = true;
+      if (isWeekend) {
+        btn.title = "Finais de semana bloqueados (sem aulas)";
+      } else if (isPast) {
+        btn.title = "Datas anteriores a hoje bloqueadas";
+      }
+    } else {
+      btn.title = `Selecionar ${d} de ${miniCalCurrentMonth.toLocaleDateString("pt-BR", { month: "short" })}`;
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        modalSelectedDate = iso;
+        modalDay = DAY_KEY_MAP[dayOfWeek];
+        if (modalDatePicker) modalDatePicker.value = iso;
+        if (modalDateDisplay) {
+          const formatted = checkDate.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+          modalDateDisplay.textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+        }
+
+        // Close mini-calendar
+        if (modalMiniCal) modalMiniCal.style.display = "none";
+        if (modalDateBtn) modalDateBtn.classList.remove("open");
+
+        // Automatically update available slots for this specific day!
+        modalSelectedSlotIndex = 0;
+        renderModalSlots();
+        renderMiniCalendar();
+      });
+    }
+
+    miniCalDays.appendChild(btn);
+  }
+
+  // Trailing next month days (locked)
+  const totalCellsSoFar = startingCol + totalDays;
+  const remainingCells = (7 - (totalCellsSoFar % 7)) % 7;
+  for (let i = 1; i <= remainingCells; i++) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mini-cal-day is-other-month is-locked";
+    btn.disabled = true;
+    btn.textContent = i;
+    miniCalDays.appendChild(btn);
+  }
+}
 
 function renderModalSlots() {
   const periodLabel = modalPeriod.charAt(0).toUpperCase() + modalPeriod.slice(1);
@@ -257,7 +640,40 @@ function renderModalSlots() {
 
   const slots = SCHEDULES[modalPeriod] || [];
   const reservations = getReservations();
+  const profile = getUserProfile();
   modalSlotsList.innerHTML = "";
+
+  const otherSpace = modalSpace === "Sala Maker" ? "Biblioteca" : "Sala Maker";
+
+  // Helper: check if a slot is reserved for a specific space (by anyone)
+  const isSlotReserved = (space, index) => reservations.some((r) => {
+    if (r.space !== space || r.period !== modalPeriod || r.slotIndex !== index) return false;
+    if (r.date && modalSelectedDate) return r.date === modalSelectedDate;
+    return r.day === modalDay;
+  });
+
+  // Helper: check if the CURRENT USER already reserved the OTHER space for this slot
+  const isSelfBlockedByOther = (index) => reservations.some((r) => {
+    if (r.space !== otherSpace || r.period !== modalPeriod || r.slotIndex !== index) return false;
+    if (!isOwnReservation(r, profile)) return false; // only block SAME user
+    if (r.date && modalSelectedDate) return r.date === modalSelectedDate;
+    return r.day === modalDay;
+  });
+
+  // Auto-pick first available slot if currently selected is blocked
+  let firstAvailableIndex = -1;
+  slots.forEach((slot, index) => {
+    const reserved = isSlotReserved(modalSpace, index);
+    const selfBlocked = isSelfBlockedByOther(index);
+    if (!reserved && !selfBlocked && firstAvailableIndex === -1) {
+      firstAvailableIndex = index;
+    }
+  });
+
+  const currentBlocked = isSlotReserved(modalSpace, modalSelectedSlotIndex) || isSelfBlockedByOther(modalSelectedSlotIndex);
+  if (currentBlocked && firstAvailableIndex !== -1) {
+    modalSelectedSlotIndex = firstAvailableIndex;
+  }
 
   slots.forEach((slot, index) => {
     if (index === 3) {
@@ -267,20 +683,26 @@ function renderModalSlots() {
       modalSlotsList.appendChild(divider);
     }
 
-    const isReserved = reservations.some(
-      (r) => r.space === modalSpace && r.day === modalDay && r.period === modalPeriod && r.slotIndex === index
-    );
+    const isReserved = isSlotReserved(modalSpace, index);
+    const selfBlocked = isSelfBlockedByOther(index);
+    const isUnavailable = isReserved || selfBlocked;
 
-    const isSelected = modalSelectedSlotIndex === index && !isReserved;
+    const isSelected = modalSelectedSlotIndex === index && !isUnavailable;
 
     const slotCard = document.createElement("div");
-    slotCard.className = `slot-card ${isReserved ? "reserved" : ""} ${isSelected ? "selected" : ""}`;
+    slotCard.className = `slot-card ${isUnavailable ? "reserved" : ""} ${isSelected ? "selected" : ""}`;
 
     let statusHtml = "";
     if (isReserved) {
       statusHtml = `
         <span class="dot-indicator dot-grey"></span>
         <span>Reservada</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+      `;
+    } else if (selfBlocked) {
+      statusHtml = `
+        <span class="dot-indicator dot-grey"></span>
+        <span>Indisponível</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
       `;
     } else if (isSelected) {
@@ -307,7 +729,7 @@ function renderModalSlots() {
       </div>
     `;
 
-    if (!isReserved) {
+    if (!isUnavailable) {
       slotCard.addEventListener("click", () => {
         modalSelectedSlotIndex = index;
         renderModalSlots();
@@ -330,8 +752,12 @@ formAgendamento.addEventListener("submit", (e) => {
   }
 
   const reservations = getReservations();
+  const profile = getUserProfile();
   const conflict = reservations.some(
-    (r) => r.space === modalSpace && r.day === modalDay && r.period === modalPeriod && r.slotIndex === modalSelectedSlotIndex
+    (r) => r.space === modalSpace &&
+           r.period === modalPeriod &&
+           r.slotIndex === modalSelectedSlotIndex &&
+           (r.date && modalSelectedDate ? r.date === modalSelectedDate : r.day === modalDay)
   );
 
   if (conflict) {
@@ -339,12 +765,27 @@ formAgendamento.addEventListener("submit", (e) => {
     return;
   }
 
+  // Exclusive slot check: block if the SAME USER already reserved the OTHER space for this slot
+  const otherSpace = modalSpace === "Sala Maker" ? "Biblioteca" : "Sala Maker";
+  const crossConflict = reservations.some(
+    (r) => r.space === otherSpace &&
+           r.period === modalPeriod &&
+           r.slotIndex === modalSelectedSlotIndex &&
+           isOwnReservation(r, profile) &&
+           (r.date && modalSelectedDate ? r.date === modalSelectedDate : r.day === modalDay)
+  );
+
+  if (crossConflict) {
+    alert(`Você já possui uma reserva na ${otherSpace} neste mesmo horário. Não é possível estar em dois espaços ao mesmo tempo.`);
+    return;
+  }
+
   const isRecurrent = recurrenceToggle.checked;
-  const profile = getUserProfile();
   const newReservation = {
     id: "res_" + Date.now(),
     space: modalSpace,
     day: modalDay,
+    date: modalSelectedDate,
     period: modalPeriod,
     slotIndex: modalSelectedSlotIndex,
     slotLabel: selectedSlot.label,
@@ -353,6 +794,7 @@ formAgendamento.addEventListener("submit", (e) => {
     grade: "Turma ETEC",
     authorName: profile.name,
     authorRole: profile.role,
+    authorId: profile.userId,
     isRecurrent: isRecurrent,
     createdAt: new Date().toISOString()
   };
@@ -373,6 +815,45 @@ formAgendamento.addEventListener("submit", (e) => {
   alert("Reserva confirmada com sucesso!");
 });
 
+function switchAgendaViewMode(mode) {
+  agendaViewMode = mode;
+
+  document.querySelectorAll(".view-switch-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.getAttribute("data-mode") === mode);
+  });
+
+  const contSemanal = document.getElementById("agenda-container-semanal");
+  const contDiaria = document.getElementById("agenda-container-diaria");
+  const contMensal = document.getElementById("agenda-container-mensal");
+  const badgeInfo = document.getElementById("agenda-view-mode-badge");
+
+  if (contSemanal) contSemanal.style.display = mode === "semanal" ? "flex" : "none";
+  if (contDiaria) contDiaria.style.display = mode === "diaria" ? "flex" : "none";
+  if (contMensal) contMensal.style.display = mode === "mensal" ? "flex" : "none";
+
+  function updateAgendaBadge() {
+    if (badgeInfo) {
+      if (mode === "semanal") badgeInfo.textContent = "Seg a Sex";
+      else if (mode === "diaria") badgeInfo.textContent = "Visão por horários";
+      else if (mode === "mensal") {
+        const monthName = currentCalendarDate.toLocaleDateString("pt-BR", { month: "long" });
+        badgeInfo.textContent = `Mês de ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`;
+      }
+    }
+  }
+  updateAgendaBadge();
+
+  updateAgendaHeaderSubtitle();
+  renderAgenda();
+}
+
+document.querySelectorAll(".view-switch-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const mode = btn.getAttribute("data-mode");
+    switchAgendaViewMode(mode);
+  });
+});
+
 document.querySelectorAll('.period-tabs[data-target="inicio"] .period-btn').forEach((btn) => {
   btn.addEventListener("click", () => {
     document.querySelectorAll('.period-tabs[data-target="inicio"] .period-btn').forEach((b) => b.classList.remove("active"));
@@ -387,7 +868,16 @@ document.querySelectorAll('.period-tabs[data-target="agenda"] .period-btn').forE
     document.querySelectorAll('.period-tabs[data-target="agenda"] .period-btn').forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     agendaPeriod = btn.getAttribute("data-period");
-    renderAgenda();
+    renderAgendaWeekly();
+  });
+});
+
+document.querySelectorAll('.period-tabs[data-target="agenda-diaria"] .period-btn').forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll('.period-tabs[data-target="agenda-diaria"] .period-btn').forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    agendaDailyPeriod = btn.getAttribute("data-period");
+    renderAgendaDaily();
   });
 });
 
@@ -398,41 +888,143 @@ document.querySelectorAll(".week-tab").forEach((btn) => {
     agendaDay = btn.getAttribute("data-day");
     const dayLabel = btn.querySelector(".day-abbr").textContent;
     const dateLabel = btn.querySelector(".day-date").textContent;
-    document.getElementById("agenda-current-day-label").textContent = `${dayLabel}, ${dateLabel}`;
-    renderAgenda();
+    const labelEl = document.getElementById("agenda-current-day-label");
+    if (labelEl) labelEl.textContent = `${dayLabel}, ${dateLabel}`;
+    renderAgendaWeekly();
   });
 });
 
+document.querySelectorAll("#agenda-daily-tabs .daily-day-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#agenda-daily-tabs .daily-day-btn").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    agendaDailyDay = btn.getAttribute("data-day");
+    updateAgendaHeaderSubtitle();
+    renderAgendaDaily();
+  });
+});
+
+const btnMonthPrev = document.getElementById("btn-month-prev");
+const btnMonthNext = document.getElementById("btn-month-next");
+const btnMonthToday = document.getElementById("btn-month-today");
+
+if (btnMonthPrev) {
+  btnMonthPrev.addEventListener("click", () => {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+    updateAgendaHeaderSubtitle();
+    const badgeInfo = document.getElementById("agenda-view-mode-badge");
+    if (badgeInfo && agendaViewMode === "mensal") {
+      const monthName = currentCalendarDate.toLocaleDateString("pt-BR", { month: "long" });
+      badgeInfo.textContent = `Mês de ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`;
+    }
+    renderAgendaMonthly();
+  });
+}
+
+if (btnMonthNext) {
+  btnMonthNext.addEventListener("click", () => {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+    updateAgendaHeaderSubtitle();
+    const badgeInfo = document.getElementById("agenda-view-mode-badge");
+    if (badgeInfo && agendaViewMode === "mensal") {
+      const monthName = currentCalendarDate.toLocaleDateString("pt-BR", { month: "long" });
+      badgeInfo.textContent = `Mês de ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`;
+    }
+    renderAgendaMonthly();
+  });
+}
+
+if (btnMonthToday) {
+  btnMonthToday.addEventListener("click", () => {
+    currentCalendarDate = new Date();
+    updateAgendaHeaderSubtitle();
+    const badgeInfo = document.getElementById("agenda-view-mode-badge");
+    if (badgeInfo && agendaViewMode === "mensal") {
+      const monthName = currentCalendarDate.toLocaleDateString("pt-BR", { month: "long" });
+      badgeInfo.textContent = `Mês de ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`;
+    }
+    renderAgendaMonthly();
+  });
+}
+
 function renderInicio() {
+  const ctx = getTodayContext();
+
+  // 1. Atualizar subtítulo da navbar
+  if (pageSubtitle) {
+    pageSubtitle.textContent = ctx.now.toLocaleDateString("pt-BR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+  }
+
+  // 2. Título da seção de horários (quando for sábado ou domingo, mostra segunda-feira)
+  const scheduleTitleEl = document.getElementById("inicio-schedule-title");
+  if (scheduleTitleEl) {
+    if (ctx.isWeekend) {
+      const mondayDateStr = `${String(ctx.activeSchoolDate.getDate()).padStart(2, "0")}/${String(ctx.activeSchoolDate.getMonth() + 1).padStart(2, "0")}`;
+      scheduleTitleEl.innerHTML = `Horários de segunda-feira <span class="weekend-tag">Próximo dia letivo · ${mondayDateStr}</span>`;
+    } else {
+      scheduleTitleEl.textContent = "Horários de hoje";
+    }
+  }
+
+  // 3. Renderizar tabela de horários
   const tableBody = document.getElementById("today-schedule-body");
   const slots = SCHEDULES[inicioPeriod] || [];
   const reservations = getReservations();
-
+  const profile = getUserProfile();
   tableBody.innerHTML = "";
 
   slots.forEach((slot, index) => {
-    const makerRes = reservations.find((r) => r.space === "Sala Maker" && r.period === inicioPeriod && r.slotIndex === index);
-    const biblioRes = reservations.find((r) => r.space === "Biblioteca" && r.period === inicioPeriod && r.slotIndex === index);
+    const matchesSlot = (r, space) => {
+      if (r.space !== space || r.period !== inicioPeriod || r.slotIndex !== index) return false;
+      if (r.date) return r.date === ctx.schoolIso;
+      return r.day === ctx.schoolDayKey;
+    };
 
-    const activeRes = makerRes || biblioRes;
-    const spaceText = activeRes ? activeRes.space : "Disponível";
+    const makerRes = reservations.find((r) => matchesSlot(r, "Sala Maker"));
+    const biblioRes = reservations.find((r) => matchesSlot(r, "Biblioteca"));
+
+    const hasMyRes = (makerRes && isOwnReservation(makerRes, profile)) || (biblioRes && isOwnReservation(biblioRes, profile));
 
     const tr = document.createElement("tr");
-    if (activeRes) {
+    if (hasMyRes) {
       tr.classList.add("row-confirmed");
     }
 
-    let statusColHtml = "";
-    if (activeRes) {
-      statusColHtml = `
-        <button type="button" class="status-badge status-confirmed status-clickable btn-detalhes-slot" data-id="${activeRes.id}" title="Clique para ver quem agendou">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          <span>${activeRes.authorName || "Confirmada"}</span>
-        </button>
-      `;
-    } else {
-      statusColHtml = `
-        <button type="button" class="btn-reserve-slot" data-index="${index}" data-period="${inicioPeriod}">
+    function renderCell(res, spaceName, otherRes) {
+      if (res) {
+        const isSelf = isOwnReservation(res, profile);
+        if (isSelf) {
+          return `
+            <button type="button" class="status-badge status-mine status-clickable btn-detalhes-slot" data-id="${res.id}" title="Sua reserva — clique para ver detalhes">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Sua reserva</span>
+            </button>
+          `;
+        }
+        return `
+          <button type="button" class="status-badge status-other-user status-clickable btn-detalhes-slot" data-id="${res.id}" title="Reservada por ${res.authorName || 'outro docente'} — clique para ver detalhes">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>${res.authorName || "Reservada"}</span>
+          </button>
+        `;
+      }
+
+      // If the current user reserved the other room for this slot, this room is unavailable for them
+      if (otherRes && isOwnReservation(otherRes, profile)) {
+        return `
+          <span class="status-badge status-unavailable" title="Você já reservou ${otherRes.space} nesta aula">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            <span>Indisponível</span>
+          </span>
+        `;
+      }
+
+      return `
+        <button type="button" class="btn-reserve-slot btn-reserve-inicio" data-space="${spaceName}" data-index="${index}">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           Reservar
         </button>
@@ -447,44 +1039,69 @@ function renderInicio() {
         </div>
       </td>
       <td>
-        <span class="space-label">${spaceText}</span>
+        ${renderCell(makerRes, "Sala Maker", biblioRes)}
       </td>
-      <td class="align-right">
-        ${statusColHtml}
+      <td>
+        ${renderCell(biblioRes, "Biblioteca", makerRes)}
       </td>
     `;
 
-    const resBtn = tr.querySelector(".btn-reserve-slot");
-    if (resBtn) {
-      resBtn.addEventListener("click", () => {
-        openModal({ period: inicioPeriod, slotIndex: index });
+    tr.querySelectorAll(".btn-reserve-inicio").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const space = btn.getAttribute("data-space") || "Sala Maker";
+        openModal({
+          space: space,
+          period: inicioPeriod,
+          slotIndex: index,
+          day: ctx.schoolDayKey,
+          date: ctx.schoolIso
+        });
       });
-    }
+    });
 
-    const detBtn = tr.querySelector(".btn-detalhes-slot");
-    if (detBtn) {
-      detBtn.addEventListener("click", () => {
-        openReservationDetails(activeRes.id);
+    tr.querySelectorAll(".btn-detalhes-slot").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-id");
+        openReservationDetails(id);
       });
-    }
+    });
 
     tableBody.appendChild(tr);
   });
 
+  // 4. Seção "Suas reservas de hoje" / "Suas reservas para segunda-feira"
+  const todayReservationsTitle = document.getElementById("today-reservations-title");
+  const todayDateIndicator = document.getElementById("today-date-indicator");
+
+  if (todayReservationsTitle) {
+    todayReservationsTitle.textContent = ctx.isWeekend ? "Suas reservas para segunda-feira" : "Suas reservas de hoje";
+  }
+
+  if (todayDateIndicator) {
+    const dObj = ctx.isWeekend ? ctx.activeSchoolDate : ctx.now;
+    todayDateIndicator.textContent = dObj.toLocaleDateString("pt-BR", { day: "numeric", month: "long" });
+  }
+
   const cardsContainer = document.getElementById("today-reservations-container");
   cardsContainer.innerHTML = "";
 
-  const myReservations = reservations.slice(0, 4);
+  // Apenas reservas do próprio usuário aparecem aqui!
+  const relevantReservations = reservations.filter((r) => {
+    if (!isOwnReservation(r, profile)) return false;
+    if (r.date) return r.date === ctx.schoolIso;
+    return r.day === ctx.schoolDayKey;
+  });
 
-  if (myReservations.length === 0) {
+  if (relevantReservations.length === 0) {
     cardsContainer.innerHTML = `
       <div class="empty-state-card">
-        Você não possui nenhuma reserva agendada ainda.<br>
-        Clique em <strong>+ Agendar espaço</strong> para criar seu primeiro horário.
+        ${ctx.isWeekend
+          ? "Você não possui nenhuma reserva para a próxima segunda-feira.<br>Clique em <strong>+ Agendar espaço</strong> acima para antecipar seus horários da semana."
+          : "Você não possui nenhuma reserva para hoje.<br>Clique em <strong>+ Agendar espaço</strong> acima para agendar uma aula."}
       </div>
     `;
   } else {
-    myReservations.forEach((res) => {
+    relevantReservations.forEach((res) => {
       const card = document.createElement("div");
       card.className = "class-card";
       const isMaker = res.space === "Sala Maker";
@@ -518,31 +1135,97 @@ function renderInicio() {
 }
 
 function renderAgenda() {
+  if (agendaViewMode === "semanal") {
+    renderAgendaWeekly();
+  } else if (agendaViewMode === "diaria") {
+    renderAgendaDaily();
+  } else if (agendaViewMode === "mensal") {
+    renderAgendaMonthly();
+  }
+}
+
+function renderAgendaWeeklyTabs() {
+  const container = document.getElementById("agenda-week-tabs");
+  if (!container) return;
+  const weekdays = getWeekdays();
+
+  container.innerHTML = weekdays.map((d) => `
+    <button type="button" class="week-tab ${d.key === agendaDay ? "active" : ""}" data-day="${d.key}">
+      <span class="day-abbr">${d.label}</span>
+      <span class="day-date">${d.dateStr}</span>
+    </button>
+  `).join("");
+
+  container.querySelectorAll(".week-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      container.querySelectorAll(".week-tab").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      agendaDay = btn.getAttribute("data-day");
+      const dayObj = weekdays.find((d) => d.key === agendaDay) || weekdays[0];
+      const labelEl = document.getElementById("agenda-current-day-label");
+      if (labelEl) labelEl.textContent = `${dayObj.label}, ${dayObj.dateStr}`;
+      renderAgendaWeekly();
+    });
+  });
+
+  const currentObj = weekdays.find((d) => d.key === agendaDay) || weekdays[0];
+  const labelEl = document.getElementById("agenda-current-day-label");
+  if (labelEl) labelEl.textContent = `${currentObj.label}, ${currentObj.dateStr}`;
+}
+
+function renderAgendaWeekly() {
+  renderAgendaWeeklyTabs();
+
   const tableBody = document.getElementById("agenda-schedule-body");
+  if (!tableBody) return;
   const slots = SCHEDULES[agendaPeriod] || [];
   const reservations = getReservations();
   const profile = getUserProfile();
+  const weekdays = getWeekdays();
+  const currentDayObj = weekdays.find((d) => d.key === agendaDay) || weekdays[0];
 
   tableBody.innerHTML = "";
 
   slots.forEach((slot, index) => {
-    const makerRes = reservations.find((r) => r.space === "Sala Maker" && r.day === agendaDay && r.period === agendaPeriod && r.slotIndex === index);
-    const biblioRes = reservations.find((r) => r.space === "Biblioteca" && r.day === agendaDay && r.period === agendaPeriod && r.slotIndex === index);
+    const matchesSlot = (r, space) => {
+      if (r.space !== space || r.period !== agendaPeriod || r.slotIndex !== index) return false;
+      if (r.date) return r.date === currentDayObj.isoDate;
+      return r.day === agendaDay;
+    };
+
+    const makerRes = reservations.find((r) => matchesSlot(r, "Sala Maker"));
+    const biblioRes = reservations.find((r) => matchesSlot(r, "Biblioteca"));
 
     const tr = document.createElement("tr");
     if (makerRes || biblioRes) {
       tr.classList.add("row-confirmed");
     }
 
-    function renderCell(res, spaceName) {
+    function renderCell(res, spaceName, otherRes) {
       if (res) {
-        const isSelf = res.authorName === profile.name;
-        const label = isSelf ? "Sua reserva" : (res.authorName || "Reservada");
+        const isSelf = isOwnReservation(res, profile);
+        if (isSelf) {
+          return `
+            <button type="button" class="status-badge status-mine status-clickable btn-detalhes-slot" data-id="${res.id}" title="Sua reserva — clique para ver detalhes">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Sua reserva</span>
+            </button>
+          `;
+        }
         return `
-          <button type="button" class="status-badge status-confirmed status-clickable btn-detalhes-slot" data-id="${res.id}" title="Clique para ver quem agendou">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span>${label}</span>
+          <button type="button" class="status-badge status-other-user status-clickable btn-detalhes-slot" data-id="${res.id}" title="Reservada por ${res.authorName || 'outro docente'} — clique para ver detalhes">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>${res.authorName || "Reservada"}</span>
           </button>
+        `;
+      }
+      // Only block if the SAME user already reserved the other space
+      if (otherRes && isOwnReservation(otherRes, profile)) {
+        return `
+          <span class="status-badge status-unavailable" title="Você já reservou ${otherRes.space} nesta aula">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            <span>Indisponível</span>
+          </span>
         `;
       }
       return `
@@ -561,17 +1244,23 @@ function renderAgenda() {
         </div>
       </td>
       <td>
-        ${renderCell(makerRes, "Sala Maker")}
+        ${renderCell(makerRes, "Sala Maker", biblioRes)}
       </td>
       <td>
-        ${renderCell(biblioRes, "Biblioteca")}
+        ${renderCell(biblioRes, "Biblioteca", makerRes)}
       </td>
     `;
 
     tr.querySelectorAll(".btn-reserve-agenda").forEach((btn) => {
       btn.addEventListener("click", () => {
         const space = btn.getAttribute("data-space");
-        openModal({ space: space, day: agendaDay, period: agendaPeriod, slotIndex: index });
+        openModal({
+          space: space,
+          day: agendaDay,
+          date: currentDayObj.isoDate,
+          period: agendaPeriod,
+          slotIndex: index
+        });
       });
     });
 
@@ -586,15 +1275,271 @@ function renderAgenda() {
   });
 }
 
+function renderAgendaDailyTabs() {
+  const container = document.getElementById("agenda-daily-tabs");
+  if (!container) return;
+  const weekdays = getWeekdays();
+
+  container.innerHTML = weekdays.map((d) => `
+    <button type="button" class="daily-day-btn ${d.key === agendaDailyDay ? "active" : ""}" data-day="${d.key}">
+      <span class="daily-day-name">${d.fullLabel}</span>
+      <span class="daily-day-date">${d.dateStr}</span>
+    </button>
+  `).join("");
+
+  container.querySelectorAll(".daily-day-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      container.querySelectorAll(".daily-day-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      agendaDailyDay = btn.getAttribute("data-day");
+      updateAgendaHeaderSubtitle();
+      renderAgendaDaily();
+    });
+  });
+
+  const currentObj = weekdays.find((d) => d.key === agendaDailyDay) || weekdays[0];
+  const titleEl = document.getElementById("agenda-daily-title");
+  if (titleEl) {
+    titleEl.textContent = `Horários · ${currentObj.label}, ${currentObj.dateStr}`;
+  }
+}
+
+function renderAgendaDaily() {
+  renderAgendaDailyTabs();
+
+  const tableBody = document.getElementById("agenda-daily-schedule-body");
+  if (!tableBody) return;
+  const slots = SCHEDULES[agendaDailyPeriod] || [];
+  const reservations = getReservations();
+  const profile = getUserProfile();
+  const weekdays = getWeekdays();
+  const currentDayObj = weekdays.find((d) => d.key === agendaDailyDay) || weekdays[0];
+
+  tableBody.innerHTML = "";
+
+  slots.forEach((slot, index) => {
+    const matchesSlot = (r, space) => {
+      if (r.space !== space || r.period !== agendaDailyPeriod || r.slotIndex !== index) return false;
+      if (r.date) return r.date === currentDayObj.isoDate;
+      return r.day === agendaDailyDay;
+    };
+
+    const makerRes = reservations.find((r) => matchesSlot(r, "Sala Maker"));
+    const biblioRes = reservations.find((r) => matchesSlot(r, "Biblioteca"));
+
+    const hasMyRes = (makerRes && isOwnReservation(makerRes, profile)) || (biblioRes && isOwnReservation(biblioRes, profile));
+
+    const tr = document.createElement("tr");
+    if (hasMyRes) {
+      tr.classList.add("row-confirmed");
+    }
+
+    function renderDailyCell(res, spaceName, otherRes) {
+      if (res) {
+        const isSelf = isOwnReservation(res, profile);
+        if (isSelf) {
+          return `
+            <button type="button" class="status-badge status-mine status-clickable btn-detalhes-daily" data-id="${res.id}" title="Sua reserva — clique para ver detalhes">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Sua reserva</span>
+            </button>
+          `;
+        }
+        return `
+          <button type="button" class="status-badge status-other-user status-clickable btn-detalhes-daily" data-id="${res.id}" title="Reservada por ${res.authorName || 'outro docente'} — clique para ver detalhes">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>${res.authorName || "Reservada"}</span>
+          </button>
+        `;
+      }
+
+      // If the current user reserved the other room for this slot, this room is unavailable for them
+      if (otherRes && isOwnReservation(otherRes, profile)) {
+        return `
+          <span class="status-badge status-unavailable" title="Você já reservou ${otherRes.space} nesta aula">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            <span>Indisponível</span>
+          </span>
+        `;
+      }
+
+      return `
+        <button type="button" class="btn-reserve-slot btn-reserve-daily" data-space="${spaceName}" data-index="${index}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Reservar
+        </button>
+      `;
+    }
+
+    tr.innerHTML = `
+      <td>
+        <div class="slot-time-col">
+          <span class="slot-name">${slot.label}</span>
+          <span class="slot-hours">${slot.time}</span>
+        </div>
+      </td>
+      <td>
+        ${renderDailyCell(makerRes, "Sala Maker", biblioRes)}
+      </td>
+      <td>
+        ${renderDailyCell(biblioRes, "Biblioteca", makerRes)}
+      </td>
+    `;
+
+    tr.querySelectorAll(".btn-reserve-daily").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const space = btn.getAttribute("data-space") || "Sala Maker";
+        openModal({
+          space: space,
+          day: agendaDailyDay,
+          date: currentDayObj.isoDate,
+          period: agendaDailyPeriod,
+          slotIndex: index
+        });
+      });
+    });
+
+    tr.querySelectorAll(".btn-detalhes-daily").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-id");
+        openReservationDetails(id);
+      });
+    });
+
+    tableBody.appendChild(tr);
+  });
+}
+
+function renderAgendaMonthly() {
+  const grid = document.getElementById("calendar-days-grid");
+  const heading = document.getElementById("calendar-month-heading");
+  if (!grid) return;
+
+  const year = currentCalendarDate.getFullYear();
+  const month = currentCalendarDate.getMonth();
+
+  if (heading) {
+    const monthName = currentCalendarDate.toLocaleDateString("pt-BR", { month: "long" });
+    heading.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+  }
+
+  grid.innerHTML = "";
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const totalDays = lastDay.getDate();
+
+  // Starting day: Monday = 0, ..., Sunday = 6
+  let startingCol = (firstDay.getDay() + 6) % 7;
+
+  // Previous month trailing days
+  const prevMonthLastDay = new Date(year, month, 0).getDate();
+  for (let i = startingCol - 1; i >= 0; i--) {
+    const dayNum = prevMonthLastDay - i;
+    const cell = document.createElement("div");
+    cell.className = "calendar-day-cell is-other-month";
+    cell.innerHTML = `
+      <div class="day-cell-top">
+        <span class="day-cell-num">${dayNum}</span>
+      </div>
+    `;
+    grid.appendChild(cell);
+  }
+
+  const reservations = getReservations();
+  const dayKeyMap = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+  const today = new Date();
+
+  for (let d = 1; d <= totalDays; d++) {
+    const thisDate = new Date(year, month, d);
+    const dayOfWeek = thisDate.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const dayKey = dayKeyMap[dayOfWeek];
+
+    const isToday = thisDate.getFullYear() === today.getFullYear() &&
+                    thisDate.getMonth() === today.getMonth() &&
+                    thisDate.getDate() === today.getDate();
+
+    const cell = document.createElement("div");
+    cell.className = `calendar-day-cell ${isWeekend ? "is-weekend" : ""} ${isToday ? "is-today" : ""}`;
+
+    const isoDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
+    let makerCount = 0;
+    let biblioCount = 0;
+
+    if (!isWeekend) {
+      reservations.forEach((r) => {
+        if (r.date === isoDate || (!r.date && r.day === dayKey)) {
+          if (r.space === "Sala Maker") makerCount++;
+          else if (r.space === "Biblioteca") biblioCount++;
+        }
+      });
+    }
+
+    let chipsHtml = "";
+    if (makerCount > 0) {
+      chipsHtml += `<span class="day-chip day-chip-maker">Maker (${makerCount})</span>`;
+    }
+    if (biblioCount > 0) {
+      chipsHtml += `<span class="day-chip day-chip-biblio">Biblio (${biblioCount})</span>`;
+    }
+
+    cell.innerHTML = `
+      <div class="day-cell-top">
+        <span class="day-cell-num">${d}</span>
+      </div>
+      <div class="day-cell-chips">
+        ${chipsHtml}
+      </div>
+    `;
+
+    if (!isWeekend) {
+      cell.setAttribute("title", `Clique para ver horários de ${dayKey.toUpperCase()}`);
+      cell.addEventListener("click", () => {
+        agendaDailyDay = dayKey;
+        document.querySelectorAll("#agenda-daily-tabs .daily-day-btn").forEach((b) => {
+          b.classList.toggle("active", b.getAttribute("data-day") === dayKey);
+        });
+        switchAgendaViewMode("diaria");
+      });
+    }
+
+    grid.appendChild(cell);
+  }
+
+  const totalCellsSoFar = startingCol + totalDays;
+  const remainingCells = (7 - (totalCellsSoFar % 7)) % 7;
+  for (let i = 1; i <= remainingCells; i++) {
+    const cell = document.createElement("div");
+    cell.className = "calendar-day-cell is-other-month";
+    cell.innerHTML = `
+      <div class="day-cell-top">
+        <span class="day-cell-num">${i}</span>
+      </div>
+    `;
+    grid.appendChild(cell);
+  }
+}
+
 function renderMyClasses() {
   const container = document.getElementById("my-classes-cards-container");
   const recurringContainer = document.getElementById("recurring-routines-container");
   const reservations = getReservations();
+  const profile = getUserProfile();
 
   container.innerHTML = "";
   recurringContainer.innerHTML = "";
 
-  if (reservations.length === 0) {
+  const myReservations = reservations.filter((r) => isOwnReservation(r, profile));
+  if (navCounter) {
+    navCounter.textContent = myReservations.length;
+  }
+  if (activeView === "minhas-aulas" && pageSubtitle) {
+    pageSubtitle.textContent = `${myReservations.length} ${myReservations.length === 1 ? "reserva" : "reservas"}`;
+  }
+
+  if (myReservations.length === 0) {
     container.innerHTML = `
       <div class="empty-state-card">
         Você não possui nenhuma reserva cadastrada.<br>
@@ -602,7 +1547,7 @@ function renderMyClasses() {
       </div>
     `;
   } else {
-    reservations.forEach((res) => {
+    myReservations.forEach((res) => {
       const card = document.createElement("div");
       card.className = "class-card";
       const isMaker = res.space === "Sala Maker";
@@ -643,7 +1588,7 @@ function renderMyClasses() {
     });
   }
 
-  const recurrentOnes = reservations.filter((r) => r.isRecurrent);
+  const recurrentOnes = myReservations.filter((r) => r.isRecurrent);
   if (recurrentOnes.length === 0) {
     recurringContainer.innerHTML = `
       <div style="text-align: center; color: #7a748c; padding: 20px; font-size: 12.5px;">
@@ -879,7 +1824,7 @@ function openReservationDetails(id) {
   if (!res) return;
 
   const profile = getUserProfile();
-  const isOwner = res.authorName === profile.name;
+  const isOwner = isOwnReservation(res, profile);
 
   const espacoEl = document.getElementById("detalhes-espaco");
   if (espacoEl) {
@@ -1089,8 +2034,11 @@ if (btnRestartTour) {
 }
 
 function updateUI() {
-  const count = getReservations().length;
-  navCounter.textContent = count;
+  const profile = getUserProfile();
+  const myCount = getReservations().filter((r) => isOwnReservation(r, profile)).length;
+  if (navCounter) {
+    navCounter.textContent = myCount;
+  }
 
   if (activeView === "inicio") renderInicio();
   else if (activeView === "agenda") renderAgenda();
@@ -1110,18 +2058,36 @@ function getAppSupabase() {
 
 async function initAuthAndLogout() {
   const client = getAppSupabase();
-  if (client) {
+  const currentProfile = getUserProfile();
+  const isExplicit = currentProfile && (currentProfile.userId === "user_dimitri" || currentProfile.userId === "user_anacarol");
+
+  if (client && !isExplicit) {
     try {
       const { data: { session } } = await client.auth.getSession();
       if (session && session.user && session.user.email) {
         const email = session.user.email;
-        const namePart = email.split("@")[0].replace(/\./g, " ");
-        const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-        const role = email.toLowerCase().includes("aluno") ? "Aluno CPS" : "Docente CPS";
+        const lower = email.toLowerCase();
+        let formattedName = "";
+        let role = "Docente CPS";
+        let userId = undefined;
+
+        if (lower === "dguerrask@gmail.com") {
+          formattedName = "Dimitri";
+          userId = "user_dimitri";
+        } else if (lower.includes("anacarol") || lower.includes("ana.carol")) {
+          formattedName = "Ana Carol";
+          userId = "user_anacarol";
+        } else {
+          const namePart = email.split("@")[0].replace(/\./g, " ");
+          formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+          role = lower.includes("aluno") ? "Aluno CPS" : "Docente CPS";
+        }
+
         saveUserProfile({
           name: formattedName,
           role: role,
-          email: email
+          email: email,
+          userId: userId
         });
       }
     } catch (e) {
@@ -1133,14 +2099,13 @@ async function initAuthAndLogout() {
     logoutLink.addEventListener("click", async (e) => {
       e.preventDefault();
       try {
+        sessionStorage.removeItem("etec_usuario_perfil");
         localStorage.removeItem("etec_usuario_perfil");
       } catch (err) {}
       if (client) {
         try {
           await client.auth.signOut();
-        } catch (err) {
-          console.warn("Erro ao deslogar do Supabase:", err);
-        }
+        } catch (err) {}
       }
       window.location.href = "index.html";
     });
@@ -1154,11 +2119,100 @@ async function initAuthAndLogout() {
   }
 }
 
+// === SINCRONIZAÇÃO EM TEMPO REAL ENTRE USUÁRIOS E ABAS ===
+async function syncReservationsFromServer(force = false) {
+  try {
+    const res = await fetch("/api/reservations", { cache: "no-store" });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && Array.isArray(data.reservations)) {
+      const serverTime = data.lastUpdated || 0;
+      const currentLocal = getReservations();
+
+      if (force || serverTime > localReservationsLastUpdated || (currentLocal.length === 0 && data.reservations.length > 0)) {
+        localReservationsLastUpdated = serverTime;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.reservations));
+        updateUI();
+        if (modal && modal.classList.contains("active")) {
+          renderModalSlots();
+        }
+      } else if (currentLocal.length > 0 && data.reservations.length === 0) {
+        fetch("/api/reservations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reservations: currentLocal })
+        }).catch(() => {});
+      }
+    }
+  } catch (e) {}
+}
+
+// 1. Sincronização instantânea via BroadcastChannel (0ms de atraso entre abas)
+if (syncChannel) {
+  syncChannel.onmessage = (event) => {
+    if (event.data && event.data.type === "RESERVATIONS_UPDATED") {
+      updateUI();
+      if (modal && modal.classList.contains("active")) {
+        renderModalSlots();
+      }
+    }
+  };
+}
+
+// 2. Sincronização nativa entre janelas/abas
+window.addEventListener("storage", (e) => {
+  if (e.key === STORAGE_KEY || e.key === "etec_reservas_dados") {
+    updateUI();
+    if (modal && modal.classList.contains("active")) {
+      renderModalSlots();
+    }
+  }
+});
+
+// 3. Heartbeat periódico a cada 1.5s (garante atualização em tempo real entre navegadores diferentes sem F5!)
+setInterval(() => {
+  syncReservationsFromServer(false);
+}, 1500);
+
+// Sincronização inicial no carregamento da tela
+syncReservationsFromServer(true);
+
 loadSettings();
 applyUserProfile();
 initAuthAndLogout();
 updateUI();
 switchView("inicio");
+
+let lastCheckedDate = new Date().toDateString();
+
+function handleDateTransition() {
+  lastCheckedDate = new Date().toDateString();
+  const ctx = getTodayContext();
+  agendaDay = ctx.schoolDayKey;
+  agendaDailyDay = ctx.schoolDayKey;
+  currentCalendarDate = new Date();
+  updateUI();
+}
+
+function scheduleMidnightUpdate() {
+  const now = new Date();
+  const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 2);
+  const msUntilMidnight = Math.max(1000, nextMidnight.getTime() - now.getTime());
+
+  setTimeout(() => {
+    handleDateTransition();
+    scheduleMidnightUpdate();
+  }, msUntilMidnight);
+}
+
+setInterval(() => {
+  const currentDateStr = new Date().toDateString();
+  if (currentDateStr !== lastCheckedDate) {
+    handleDateTransition();
+  }
+}, 30000);
+
+scheduleMidnightUpdate();
 
 if (!localStorage.getItem(TOUR_STORAGE_KEY)) {
   setTimeout(() => {

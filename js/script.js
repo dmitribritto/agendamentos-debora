@@ -14,15 +14,35 @@ getSupabase();
 
 function saveSessionProfile(email) {
   if (!email) return;
-  const namePart = email.split("@")[0].replace(/\./g, " ");
-  const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-  const role = email.toLowerCase().includes("aluno") ? "Aluno CPS" : "Docente CPS";
+  const lower = email.toLowerCase();
+  let name = "";
+  let role = "Docente CPS";
+  let userId = "";
+
+  if (lower === "dguerrask@gmail.com") {
+    name = "Dimitri";
+    role = "Docente CPS";
+    userId = "user_dimitri";
+  } else if (lower.includes("anacarol") || lower.includes("ana.carol")) {
+    name = "Ana Carol";
+    role = "Docente CPS";
+    userId = "user_anacarol";
+  } else {
+    const namePart = email.split("@")[0].replace(/\./g, " ");
+    name = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    role = lower.includes("aluno") ? "Aluno CPS" : "Docente CPS";
+    userId = "user_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
+  }
+
   try {
-    localStorage.setItem("etec_usuario_perfil", JSON.stringify({
-      name: formattedName,
+    const p = {
+      name: name,
       role: role,
-      email: email
-    }));
+      email: email,
+      userId: userId
+    };
+    sessionStorage.setItem("etec_usuario_perfil", JSON.stringify(p));
+    localStorage.setItem("etec_usuario_perfil", JSON.stringify(p));
   } catch (e) {
     console.warn("Não foi possível salvar perfil local:", e);
   }
@@ -60,32 +80,21 @@ function formatAuthError(error) {
   return "Erro: " + msg;
 }
 
-// Verificar sessão ativa ou retorno do link de confirmação no e-mail
+// Verificar retorno do link de confirmação no e-mail
 async function initSessionCheck() {
   const client = getSupabase();
   if (!client) return;
 
-  // Escutar evento de autenticação (ex: clique no link de confirmação do Gmail com token na URL)
-  client.auth.onAuthStateChange((event, session) => {
-    if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
-      if (session.user?.email) {
-        saveSessionProfile(session.user.email);
+  // Apenas redireciona automaticamente se veio de link de confirmação do Gmail (com token na URL)
+  if (window.location.hash.includes("access_token")) {
+    client.auth.onAuthStateChange((event, session) => {
+      if (session && event === "SIGNED_IN") {
+        if (session.user?.email) {
+          saveSessionProfile(session.user.email);
+        }
+        window.location.href = "app.html";
       }
-      window.location.href = "app.html";
-    }
-  });
-
-  // Se já houver sessão ativa salva no navegador
-  try {
-    const { data: { session } } = await client.auth.getSession();
-    if (session) {
-      if (session.user?.email) {
-        saveSessionProfile(session.user.email);
-      }
-      window.location.href = "app.html";
-    }
-  } catch (err) {
-    console.warn("Erro ao verificar sessão ativa:", err);
+    });
   }
 }
 
@@ -278,6 +287,16 @@ authForm.addEventListener("submit", async (e) => {
       });
 
       if (error) {
+        // Fallback para contas de teste/demonstração caso o Supabase falhe ou esteja sem conexão
+        const lower = email.toLowerCase();
+        if (
+          (lower === "dguerrask@gmail.com" && password === "123456") ||
+          (lower === "anacarol.docente@gmail.com" && password === "123456")
+        ) {
+          saveSessionProfile(email);
+          window.location.href = "app.html";
+          return;
+        }
         alert(formatAuthError(error));
       } else {
         if (data?.user?.email) {
@@ -313,11 +332,14 @@ if (btnQuickAccess) {
 
     // 1. Salvar perfil para uso imediato no sistema
     try {
-      localStorage.setItem("etec_usuario_perfil", JSON.stringify({
+      const p = {
         name: DIMITRI_NAME,
         role: "Docente CPS",
-        email: DIMITRI_EMAIL
-      }));
+        email: DIMITRI_EMAIL,
+        userId: "user_dimitri"
+      };
+      sessionStorage.setItem("etec_usuario_perfil", JSON.stringify(p));
+      localStorage.setItem("etec_usuario_perfil", JSON.stringify(p));
     } catch (e) {
       console.warn("Erro ao salvar perfil local:", e);
     }
@@ -336,6 +358,63 @@ if (btnQuickAccess) {
           await client.auth.signUp({
             email: DIMITRI_EMAIL,
             password: DIMITRI_PASS
+          });
+        }
+      } catch (err) {
+        console.warn("Tentativa de login Supabase em segundo plano:", err);
+      }
+    }
+
+    // 3. Entra diretamente no sistema
+    window.location.href = "app.html";
+  });
+}
+
+// Acesso Rápido - Conta Ana Carol (segunda docente para testes)
+const btnQuickAccessAna = document.getElementById("btn-quick-access-ana");
+if (btnQuickAccessAna) {
+  btnQuickAccessAna.addEventListener("click", async () => {
+    const ANA_EMAIL = "anacarol.docente@gmail.com";
+    const ANA_NAME = "Ana Carol";
+    const ANA_PASS = "123456";
+
+    btnQuickAccessAna.style.pointerEvents = "none";
+    btnQuickAccessAna.style.opacity = "0.7";
+    btnQuickAccessAna.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+      <span>Acessando...</span>
+    `;
+
+    // 1. Salvar perfil para uso imediato no sistema
+    try {
+      const p = {
+        name: ANA_NAME,
+        role: "Docente CPS",
+        email: ANA_EMAIL,
+        userId: "user_anacarol"
+      };
+      sessionStorage.setItem("etec_usuario_perfil", JSON.stringify(p));
+      localStorage.setItem("etec_usuario_perfil", JSON.stringify(p));
+    } catch (e) {
+      console.warn("Erro ao salvar perfil local:", e);
+    }
+
+    // 2. Tentar autenticação em segundo plano no Supabase (se disponível, sem bloquear)
+    const client = getSupabase();
+    if (client) {
+      try {
+        const { error } = await client.auth.signInWithPassword({
+          email: ANA_EMAIL,
+          password: ANA_PASS
+        });
+
+        // Se a conta ainda não existir no Supabase, tenta cadastrar
+        if (error && (error.message.includes("Invalid login credentials") || error.message.includes("User not found"))) {
+          await client.auth.signUp({
+            email: ANA_EMAIL,
+            password: ANA_PASS
           });
         }
       } catch (err) {

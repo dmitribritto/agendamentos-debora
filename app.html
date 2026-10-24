@@ -80,7 +80,7 @@
         </div>
         <div class="header-titles">
           <h1 id="page-title">Painel de Agendamentos</h1>
-          <span class="header-pill" id="page-subtitle">11 de setembro, 2026</span>
+          <span class="header-pill" id="page-subtitle"></span>
         </div>
         <div class="header-actions">
           <button type="button" class="action-btn outline-btn" id="btn-header-agenda">
@@ -113,6 +113,38 @@
         </div>
       </header>
 
+      <div class="header-subnav" id="agenda-subnav" style="display: none;">
+        <div class="agenda-view-switcher" role="tablist" aria-label="Visualização da agenda">
+          <button type="button" class="view-switch-btn" data-mode="diaria" id="btn-mode-diaria">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>Diária</span>
+          </button>
+          <button type="button" class="view-switch-btn active" data-mode="semanal" id="btn-mode-semanal">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="9" y1="4" x2="9" y2="22"></line>
+              <line x1="15" y1="4" x2="15" y2="22"></line>
+            </svg>
+            <span>Semanal</span>
+          </button>
+          <button type="button" class="view-switch-btn" data-mode="mensal" id="btn-mode-mensal">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Mensal</span>
+          </button>
+        </div>
+        <div class="agenda-top-info">
+          <span id="agenda-view-mode-badge" class="view-mode-badge">Seg a Sex</span>
+        </div>
+      </div>
+
       <main class="content-body">
         <section class="view-panel active" id="view-inicio">
           <div class="dashboard-grid">
@@ -126,7 +158,7 @@
                       <line x1="8" y1="2" x2="8" y2="6"></line>
                       <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
-                    <span>Horários de hoje</span>
+                    <span id="inicio-schedule-title">Horários de hoje</span>
                   </div>
                   <div class="period-tabs" data-target="inicio">
                     <button type="button" class="period-btn active" data-period="manha">Manhã</button>
@@ -139,9 +171,9 @@
                   <table class="schedule-table">
                     <thead>
                       <tr>
-                        <th>Aula / horário</th>
-                        <th>Espaço</th>
-                        <th class="align-right">Situação</th>
+                        <th style="width: 25%;">Aula / horário</th>
+                        <th style="width: 37.5%;">Sala Maker</th>
+                        <th style="width: 37.5%;">Biblioteca</th>
                       </tr>
                     </thead>
                     <tbody id="today-schedule-body"></tbody>
@@ -156,9 +188,9 @@
                       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                       <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                     </svg>
-                    <span>Suas reservas de hoje</span>
+                    <span id="today-reservations-title">Suas reservas de hoje</span>
                   </div>
-                  <span class="sub-date" id="today-date-indicator">11 de setembro</span>
+                  <span class="sub-date" id="today-date-indicator"></span>
                 </div>
                 <div class="cards-grid" id="today-reservations-container"></div>
               </div>
@@ -205,58 +237,156 @@
 
         <section class="view-panel" id="view-agenda">
           <div class="agenda-layout">
-            <div class="week-tabs" id="agenda-week-tabs">
-              <button type="button" class="week-tab active" data-day="seg">
-                <span class="day-abbr">Seg</span>
-                <span class="day-date">14/09</span>
-              </button>
-              <button type="button" class="week-tab" data-day="ter">
-                <span class="day-abbr">Ter</span>
-                <span class="day-date">15/09</span>
-              </button>
-              <button type="button" class="week-tab" data-day="qua">
-                <span class="day-abbr">Qua</span>
-                <span class="day-date">16/09</span>
-              </button>
-              <button type="button" class="week-tab" data-day="qui">
-                <span class="day-abbr">Qui</span>
-                <span class="day-date">17/09</span>
-              </button>
-              <button type="button" class="week-tab" data-day="sex">
-                <span class="day-abbr">Sex</span>
-                <span class="day-date">18/09</span>
-              </button>
-            </div>
-
-            <div class="panel-box agenda-panel">
-              <div class="panel-header">
-                <div class="panel-title">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                  </svg>
-                  <span id="agenda-current-day-label">Seg, 14/09</span>
-                </div>
-                <div class="period-tabs" data-target="agenda">
-                  <button type="button" class="period-btn active" data-period="manha">Manhã</button>
-                  <button type="button" class="period-btn" data-period="tarde">Tarde</button>
-                  <button type="button" class="period-btn" data-period="noite">Noite</button>
-                </div>
+            <!-- 1. VISÃO SEMANAL (PADRÃO - APENAS SEG A SEX) -->
+            <div class="agenda-view-container active" id="agenda-container-semanal">
+              <div class="week-tabs" id="agenda-week-tabs">
+                <button type="button" class="week-tab active" data-day="seg">
+                  <span class="day-abbr">Seg</span>
+                  <span class="day-date">14/09</span>
+                </button>
+                <button type="button" class="week-tab" data-day="ter">
+                  <span class="day-abbr">Ter</span>
+                  <span class="day-date">15/09</span>
+                </button>
+                <button type="button" class="week-tab" data-day="qua">
+                  <span class="day-abbr">Qua</span>
+                  <span class="day-date">16/09</span>
+                </button>
+                <button type="button" class="week-tab" data-day="qui">
+                  <span class="day-abbr">Qui</span>
+                  <span class="day-date">17/09</span>
+                </button>
+                <button type="button" class="week-tab" data-day="sex">
+                  <span class="day-abbr">Sex</span>
+                  <span class="day-date">18/09</span>
+                </button>
               </div>
 
-              <div class="table-container">
-                <table class="schedule-table">
-                  <thead>
-                    <tr>
-                      <th style="width: 25%;">Aula / horário</th>
-                      <th style="width: 37.5%;">Sala Maker</th>
-                      <th style="width: 37.5%;">Biblioteca</th>
-                    </tr>
-                  </thead>
-                  <tbody id="agenda-schedule-body"></tbody>
-                </table>
+              <div class="panel-box agenda-panel">
+                <div class="panel-header">
+                  <div class="panel-title">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span id="agenda-current-day-label">Seg, 14/09</span>
+                  </div>
+                  <div class="period-tabs" data-target="agenda">
+                    <button type="button" class="period-btn active" data-period="manha">Manhã</button>
+                    <button type="button" class="period-btn" data-period="tarde">Tarde</button>
+                    <button type="button" class="period-btn" data-period="noite">Noite</button>
+                  </div>
+                </div>
+
+                <div class="table-container">
+                  <table class="schedule-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 25%;">Aula / horário</th>
+                        <th style="width: 37.5%;">Sala Maker</th>
+                        <th style="width: 37.5%;">Biblioteca</th>
+                      </tr>
+                    </thead>
+                    <tbody id="agenda-schedule-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. VISÃO DIÁRIA (APENAS HORÁRIOS, QUE NEM NA PÁGINA DE INÍCIO) -->
+            <div class="agenda-view-container" id="agenda-container-diaria" style="display: none;">
+              <div class="daily-day-selector" id="agenda-daily-tabs">
+                <button type="button" class="daily-day-btn active" data-day="seg">
+                  <span class="daily-day-name">Segunda-feira</span>
+                  <span class="daily-day-date">14/09</span>
+                </button>
+                <button type="button" class="daily-day-btn" data-day="ter">
+                  <span class="daily-day-name">Terça-feira</span>
+                  <span class="daily-day-date">15/09</span>
+                </button>
+                <button type="button" class="daily-day-btn" data-day="qua">
+                  <span class="daily-day-name">Quarta-feira</span>
+                  <span class="daily-day-date">16/09</span>
+                </button>
+                <button type="button" class="daily-day-btn" data-day="qui">
+                  <span class="daily-day-name">Quinta-feira</span>
+                  <span class="daily-day-date">17/09</span>
+                </button>
+                <button type="button" class="daily-day-btn" data-day="sex">
+                  <span class="daily-day-name">Sexta-feira</span>
+                  <span class="daily-day-date">18/09</span>
+                </button>
+              </div>
+
+              <div class="panel-box agenda-panel">
+                <div class="panel-header">
+                  <div class="panel-title">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span id="agenda-daily-title">Horários · Seg, 14/09</span>
+                  </div>
+                  <div class="period-tabs" data-target="agenda-diaria">
+                    <button type="button" class="period-btn active" data-period="manha">Manhã</button>
+                    <button type="button" class="period-btn" data-period="tarde">Tarde</button>
+                    <button type="button" class="period-btn" data-period="noite">Noite</button>
+                  </div>
+                </div>
+
+                <div class="table-container">
+                  <table class="schedule-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 25%;">Aula / horário</th>
+                        <th style="width: 37.5%;">Sala Maker</th>
+                        <th style="width: 37.5%;">Biblioteca</th>
+                      </tr>
+                    </thead>
+                    <tbody id="agenda-daily-schedule-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. VISÃO MENSAL -->
+            <div class="agenda-view-container" id="agenda-container-mensal" style="display: none;">
+              <div class="panel-box month-calendar-panel">
+                <div class="panel-header month-calendar-header">
+                  <div class="calendar-nav-left">
+                    <button type="button" class="calendar-nav-btn" id="btn-month-prev" title="Mês anterior">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                      </svg>
+                    </button>
+                    <span class="calendar-month-title" id="calendar-month-heading">Setembro 2026</span>
+                    <button type="button" class="calendar-nav-btn" id="btn-month-next" title="Próximo mês">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </button>
+                    <button type="button" class="calendar-today-btn" id="btn-month-today">Hoje</button>
+                  </div>
+                  <div class="calendar-legend">
+                    <span class="legend-item"><span class="legend-dot dot-maker"></span> Sala Maker</span>
+                    <span class="legend-item"><span class="legend-dot dot-biblio"></span> Biblioteca</span>
+                  </div>
+                </div>
+
+                <div class="month-calendar-wrapper">
+                  <div class="calendar-weekdays-row">
+                    <div class="calendar-weekday-col">Seg</div>
+                    <div class="calendar-weekday-col">Ter</div>
+                    <div class="calendar-weekday-col">Qua</div>
+                    <div class="calendar-weekday-col">Qui</div>
+                    <div class="calendar-weekday-col">Sex</div>
+                    <div class="calendar-weekday-col is-weekend">Sáb</div>
+                    <div class="calendar-weekday-col is-weekend">Dom</div>
+                  </div>
+                  <div class="calendar-days-grid" id="calendar-days-grid"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -295,6 +425,58 @@
 
         <section class="view-panel" id="view-configuracoes">
           <div class="settings-grid">
+            <div class="panel-box settings-card">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span>Perfil do Usuário</span>
+                </div>
+              </div>
+              <div class="settings-list">
+                <div class="setting-input-group">
+                  <label class="setting-label" for="cfg-user-name">Nome do docente</label>
+                  <input type="text" id="cfg-user-name" class="settings-text-input" placeholder="Ex: Prof. Marcelo">
+                </div>
+                <div class="setting-input-group">
+                  <label class="setting-label" for="cfg-user-role">Cargo ou identificação</label>
+                  <input type="text" id="cfg-user-role" class="settings-text-input" placeholder="Ex: Docente CPS">
+                </div>
+                <div class="setting-actions">
+                  <button type="button" class="action-btn primary-btn" id="btn-save-profile">
+                    <span>Salvar perfil</span>
+                  </button>
+                  <span class="save-status-msg" id="profile-save-status"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-box settings-card">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <span>Tutorial e Ajuda</span>
+                </div>
+              </div>
+              <div class="settings-list">
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name">Guia interativo</span>
+                    <span class="setting-desc">Reveja o passo a passo de como navegar e agendar os espaços.</span>
+                  </div>
+                  <button type="button" class="action-btn outline-btn" id="btn-restart-tour">
+                    <span>Rever tutorial</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div class="panel-box settings-card">
               <div class="panel-header">
                 <div class="panel-title">
@@ -419,58 +601,6 @@
                 </div>
               </div>
             </div>
-
-            <div class="panel-box settings-card">
-              <div class="panel-header">
-                <div class="panel-title">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  <span>Perfil do Usuário</span>
-                </div>
-              </div>
-              <div class="settings-list">
-                <div class="setting-input-group">
-                  <label class="setting-label" for="cfg-user-name">Nome do docente</label>
-                  <input type="text" id="cfg-user-name" class="settings-text-input" placeholder="Ex: Prof. Marcelo">
-                </div>
-                <div class="setting-input-group">
-                  <label class="setting-label" for="cfg-user-role">Cargo ou identificação</label>
-                  <input type="text" id="cfg-user-role" class="settings-text-input" placeholder="Ex: Docente CPS">
-                </div>
-                <div class="setting-actions">
-                  <button type="button" class="action-btn primary-btn" id="btn-save-profile">
-                    <span>Salvar perfil</span>
-                  </button>
-                  <span class="save-status-msg" id="profile-save-status"></span>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel-box settings-card">
-              <div class="panel-header">
-                <div class="panel-title">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                  </svg>
-                  <span>Tutorial e Ajuda</span>
-                </div>
-              </div>
-              <div class="settings-list">
-                <div class="setting-item">
-                  <div class="setting-info">
-                    <span class="setting-name">Guia interativo</span>
-                    <span class="setting-desc">Reveja o passo a passo de como navegar e agendar os espaços.</span>
-                  </div>
-                  <button type="button" class="action-btn outline-btn" id="btn-restart-tour">
-                    <span>Rever tutorial</span>
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
       </main>
@@ -534,16 +664,39 @@
               </div>
             </div>
 
-            <div class="modal-field">
-              <div class="date-input-box">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
+            <div class="modal-field modal-date-field">
+              <label class="modal-label">Data da reserva</label>
+              <button type="button" class="date-input-box" id="modal-date-btn">
+                <div class="date-input-left">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span id="modal-date-display">Sexta-feira, 24 de outubro</span>
+                </div>
+                <svg class="date-arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
-                <input type="date" id="modal-date-picker" class="hidden-date-input">
-                <span id="modal-date-display">Hoje, sexta-feira, 23 de outubro</span>
+              </button>
+              <input type="hidden" id="modal-date-picker" value="">
+
+              <!-- Mini Calendário do Mês no Modal -->
+              <div class="modal-mini-calendar" id="modal-mini-calendar" style="display: none;">
+                <div class="mini-cal-header">
+                  <button type="button" class="mini-cal-nav" id="mini-cal-prev" title="Mês anterior">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <span class="mini-cal-title" id="mini-cal-title">Outubro 2026</span>
+                  <button type="button" class="mini-cal-nav" id="mini-cal-next" title="Próximo mês">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                </div>
+                <div class="mini-cal-weekdays">
+                  <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span class="is-weekend">Sáb</span><span class="is-weekend">Dom</span>
+                </div>
+                <div class="mini-cal-days" id="mini-cal-days"></div>
               </div>
             </div>
 

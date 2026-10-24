@@ -1,0 +1,36 @@
+[
+  {
+    "id": "res_1792847264225",
+    "space": "Biblioteca",
+    "day": "seg",
+    "date": "2026-10-26",
+    "period": "manha",
+    "slotIndex": 0,
+    "slotLabel": "1ª aula",
+    "slotTime": "07:10 – 08:00",
+    "description": "Aula da Carol",
+    "grade": "Turma ETEC",
+    "authorName": "Ana Carol",
+    "authorRole": "Docente CPS",
+    "authorId": "user_anacarol",
+    "isRecurrent": false,
+    "createdAt": "2026-10-24T13:07:44.225Z"
+  },
+  {
+    "id": "res_1792848132353",
+    "space": "Sala Maker",
+    "day": "seg",
+    "date": "2026-10-26",
+    "period": "manha",
+    "slotIndex": 2,
+    "slotLabel": "3ª aula",
+    "slotTime": "08:50 – 09:40",
+    "description": "Atividade Prática Maker",
+    "grade": "Turma ETEC",
+    "authorName": "Jow",
+    "authorRole": "Prof. Português",
+    "authorId": "user_dimitri",
+    "isRecurrent": false,
+    "createdAt": "2026-10-24T13:22:12.353Z"
+  }
+]
