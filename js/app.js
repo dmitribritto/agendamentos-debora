@@ -496,7 +496,7 @@ function switchView(viewName) {
     renderMyClasses();
   } else if (viewName === "configuracoes") {
     pageTitle.textContent = "Configurações";
-    pageSubtitle.textContent = "Prévia • alterações salvas localmente";
+    pageSubtitle.textContent = "Preferências e perfil do usuário";
   }
 }
 
@@ -959,6 +959,7 @@ formAgendamento.addEventListener("submit", (e) => {
 });
 
 function switchAgendaViewMode(mode) {
+  if (mode !== "mensal") mode = "semanal";
   agendaViewMode = mode;
 
   document.querySelectorAll(".view-switch-btn").forEach((btn) => {
@@ -966,18 +967,15 @@ function switchAgendaViewMode(mode) {
   });
 
   const contSemanal = document.getElementById("agenda-container-semanal");
-  const contDiaria = document.getElementById("agenda-container-diaria");
   const contMensal = document.getElementById("agenda-container-mensal");
   const badgeInfo = document.getElementById("agenda-view-mode-badge");
 
   if (contSemanal) contSemanal.style.display = mode === "semanal" ? "flex" : "none";
-  if (contDiaria) contDiaria.style.display = mode === "diaria" ? "flex" : "none";
   if (contMensal) contMensal.style.display = mode === "mensal" ? "flex" : "none";
 
   function updateAgendaBadge() {
     if (badgeInfo) {
       if (mode === "semanal") badgeInfo.textContent = "Seg a Sex";
-      else if (mode === "diaria") badgeInfo.textContent = "Visão por horários";
       else if (mode === "mensal") {
         const monthName = currentCalendarDate.toLocaleDateString("pt-BR", { month: "long" });
         badgeInfo.textContent = `Mês de ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`;
@@ -1279,12 +1277,11 @@ function renderInicio() {
 }
 
 function renderAgenda() {
-  if (agendaViewMode === "semanal") {
-    renderAgendaWeekly();
-  } else if (agendaViewMode === "diaria") {
-    renderAgendaDaily();
-  } else if (agendaViewMode === "mensal") {
+  if (agendaViewMode === "mensal") {
     renderAgendaMonthly();
+  } else {
+    agendaViewMode = "semanal";
+    renderAgendaWeekly();
   }
 }
 
