@@ -7,14 +7,12 @@ const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'reservations.json');
 
-// Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
   try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) {}
 }
 
 let lastServerUpdate = Date.now();
 
-// Harmoniza as reservas garantindo que cada autor tenha seu nome e cargo mais recente unificado em todas as suas reservas
 function harmonizeReservations(list) {
   if (!Array.isArray(list)) return list;
   const latestByAuthor = new Map();
@@ -52,19 +50,24 @@ function harmonizeReservations(list) {
       authorInfo = knownNameMap.get(r.authorName.trim().toLowerCase());
     }
 
+    const schoolId = r.schoolId || 'furlan';
+
     if (authorInfo && authorInfo.name) {
       return {
         ...r,
+        schoolId,
         authorName: authorInfo.name,
         authorRole: authorInfo.role || r.authorRole || 'Docente CPS',
         authorId: r.authorId || (authorInfo === anaLatest ? 'user_anacarol' : 'user_dimitri')
       };
     }
-    return r;
+    return {
+      ...r,
+      schoolId
+    };
   });
 }
 
-// Read existing reservations from file or start empty
 function readReservationsFromFile() {
   try {
     if (fs.existsSync(DATA_FILE)) {
@@ -92,7 +95,7 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
-  // CORS headers
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -106,7 +109,6 @@ const server = http.createServer((req, res) => {
   const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const reqPath = urlObj.pathname;
 
-  // Endpoint dedicado para atualização de perfil do usuário e propagação automática de nome
   if (reqPath === '/api/update-profile' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
@@ -152,15 +154,39 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Real-time API for synchronization across all users/browsers
+  const DEFAULT_SCHOOLS = [
+    {
+      id: "furlan",
+      name: "ETEC Antônio Furlan",
+      code: "ETEC-AF2026-8392",
+      aliases: ["ETEC-AF2026-8392", "ETEC-AB12CD", "AF2026-8392"],
+      city: "Barueri - SP",
+      description: "Sistema de agendamento de espaços"
+    }
+  ];
+
+  if (reqPath === '/api/schools') {
+    if (req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ schools: DEFAULT_SCHOOLS }));
+      return;
+    }
+  }
+
   if (reqPath === '/api/reservations') {
     if (req.method === 'GET') {
+      const schoolFilter = urlObj.searchParams.get('schoolId');
+      let returnList = serverReservations;
+      if (schoolFilter) {
+        returnList = serverReservations.filter(r => (r.schoolId || 'furlan') === schoolFilter);
+      }
       res.writeHead(200, {
         'Content-Type': 'application/json; charset=utf-8',
         'Cache-Control': 'no-cache, no-store, must-revalidate'
       });
       res.end(JSON.stringify({
-        reservations: serverReservations,
+        reservations: returnList,
+        allReservations: serverReservations,
         lastUpdated: lastServerUpdate
       }));
       return;
@@ -173,7 +199,20 @@ const server = http.createServer((req, res) => {
         try {
           const parsed = JSON.parse(body);
           if (Array.isArray(parsed.reservations)) {
-            serverReservations = harmonizeReservations(parsed.reservations);
+            if (parsed.schoolId) {
+
+              const targetSchool = parsed.schoolId;
+              const others = serverReservations.filter(r => (r.schoolId || 'furlan') !== targetSchool);
+              const updated = parsed.reservations.map(r => ({ ...r, schoolId: targetSchool }));
+              serverReservations = harmonizeReservations([...others, ...updated]);
+            } else {
+
+              const map = new Map();
+              serverReservations.forEach(r => map.set(r.id, r));
+              parsed.reservations.forEach(r => map.set(r.id, { ...r, schoolId: r.schoolId || 'furlan' }));
+              serverReservations = harmonizeReservations(Array.from(map.values()));
+            }
+
             lastServerUpdate = Date.now();
             try {
               fs.writeFileSync(DATA_FILE, JSON.stringify(serverReservations, null, 2), 'utf-8');

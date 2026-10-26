@@ -1,6 +1,43 @@
 [
   {
+    "id": "res_rocha_001",
+    "schoolId": "rocha-mendes",
+    "space": "Sala Maker",
+    "day": "seg",
+    "date": "2026-10-26",
+    "period": "manha",
+    "slotIndex": 0,
+    "slotLabel": "1ª aula",
+    "slotTime": "07:10 – 08:00",
+    "description": "Oficina de Robótica e Arduino",
+    "grade": "3º MTEC Informática",
+    "authorName": "Prof. Ricardo Silva",
+    "authorRole": "Coordenador Maker",
+    "authorId": "user_ricardo_rocha",
+    "isRecurrent": false,
+    "createdAt": "2026-10-25T10:00:00.000Z"
+  },
+  {
+    "id": "res_rocha_002",
+    "schoolId": "rocha-mendes",
+    "space": "Biblioteca",
+    "day": "seg",
+    "date": "2026-10-26",
+    "period": "manha",
+    "slotIndex": 3,
+    "slotLabel": "4ª aula",
+    "slotTime": "10:00 – 10:50",
+    "description": "Clube do Livro & Leitura Dirigida",
+    "grade": "1º MTEC ADM",
+    "authorName": "Profa. Marina Costa",
+    "authorRole": "Docente CPS",
+    "authorId": "user_marina_rocha",
+    "isRecurrent": false,
+    "createdAt": "2026-10-25T11:30:00.000Z"
+  },
+  {
     "id": "res_1792847264225",
+    "schoolId": "furlan",
     "space": "Biblioteca",
     "day": "seg",
     "date": "2026-10-26",
@@ -14,10 +51,11 @@
     "authorRole": "Prof. Chata",
     "authorId": "user_anacarol",
     "isRecurrent": false,
-    "createdAt": "2026-10-24T13:07:44.225Z"
+    "createdAt": "2026-10-24T13:07:44.225+00:00"
   },
   {
     "id": "res_1792848132353",
+    "schoolId": "furlan",
     "space": "Sala Maker",
     "day": "seg",
     "date": "2026-10-26",
@@ -27,14 +65,15 @@
     "slotTime": "08:50 – 09:40",
     "description": "Atividade Prática Maker",
     "grade": "Turma ETEC",
-    "authorName": "Jow",
-    "authorRole": "Prof. Português",
+    "authorName": "Dimitri",
+    "authorRole": "Docente CPS",
     "authorId": "user_dimitri",
     "isRecurrent": false,
-    "createdAt": "2026-10-24T13:22:12.353Z"
+    "createdAt": "2026-10-24T13:22:12.353+00:00"
   },
   {
     "id": "res_1792849426625",
+    "schoolId": "furlan",
     "space": "Biblioteca",
     "day": "seg",
     "date": "2026-10-26",
@@ -48,6 +87,24 @@
     "authorRole": "Prof. Chata",
     "authorId": "user_anacarol",
     "isRecurrent": false,
-    "createdAt": "2026-10-24T13:43:46.625Z"
+    "createdAt": "2026-10-24T13:43:46.625+00:00"
+  },
+  {
+    "id": "res_1793014579876",
+    "schoolId": "furlan",
+    "space": "Sala Maker",
+    "day": "seg",
+    "date": "2026-10-26",
+    "period": "manha",
+    "slotIndex": 5,
+    "slotLabel": "6ª aula",
+    "slotTime": "11:40 – 12:30",
+    "description": "a senha da etec é ETEC-AF2026-8392",
+    "grade": "Turma ETEC",
+    "authorName": "Dimitri",
+    "authorRole": "Docente CPS",
+    "authorId": "user_dimitri",
+    "isRecurrent": true,
+    "createdAt": "2026-10-26T11:36:19.876Z"
   }
 ]

@@ -12,26 +12,70 @@ function getSupabase() {
 
 getSupabase();
 
-function saveSessionProfile(email) {
+const USERS_DB_KEY = "etec_usuarios_cadastrados";
+
+function getRegisteredUsers() {
+  try {
+    const raw = localStorage.getItem(USERS_DB_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveRegisteredUserProfile(email, name, role, password = "") {
   if (!email) return;
-  const lower = email.toLowerCase();
-  let name = "";
-  let role = "Docente CPS";
-  let userId = "";
+  const db = getRegisteredUsers();
+  db[email.toLowerCase().trim()] = {
+    name: name ? name.trim() : "",
+    role: role ? role.trim() : "Docente CPS",
+    password: password || (db[email.toLowerCase().trim()]?.password || "")
+  };
+  try {
+    localStorage.setItem(USERS_DB_KEY, JSON.stringify(db));
+  } catch (e) {}
+}
+
+function getRegisteredUserProfile(email) {
+  if (!email) return null;
+  const db = getRegisteredUsers();
+  return db[email.toLowerCase().trim()] || null;
+}
+
+function saveSessionProfile(email, customName = "", customRole = "", customUserId = "") {
+  if (!email) return;
+  const lower = email.toLowerCase().trim();
+  let name = customName ? customName.trim() : "";
+  let role = customRole ? customRole.trim() : "";
+  let userId = customUserId || "";
+
+  if (!name) {
+    const reg = getRegisteredUserProfile(lower);
+    if (reg && reg.name) {
+      name = reg.name;
+      role = role || reg.role;
+    }
+  }
 
   if (lower === "dguerrask@gmail.com") {
-    name = "Dimitri";
-    role = "Docente CPS";
-    userId = "user_dimitri";
+    name = name || "Dimitri";
+    role = role || "Docente CPS";
+    userId = userId || "user_dimitri";
   } else if (lower.includes("anacarol") || lower.includes("ana.carol")) {
-    name = "Ana Carol";
-    role = "Docente CPS";
-    userId = "user_anacarol";
+    name = name || "Ana Carol";
+    role = role || "Docente CPS";
+    userId = userId || "user_anacarol";
   } else {
-    const namePart = email.split("@")[0].replace(/\./g, " ");
-    name = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-    role = lower.includes("aluno") ? "Aluno CPS" : "Docente CPS";
-    userId = "user_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
+    if (!name) {
+      const namePart = email.split("@")[0].replace(/\./g, " ");
+      name = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    }
+    if (!role) {
+      role = lower.includes("aluno") ? "Aluno CPS" : "Docente CPS";
+    }
+    if (!userId) {
+      userId = "user_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
+    }
   }
 
   try {
@@ -50,49 +94,36 @@ function saveSessionProfile(email) {
 
 function formatAuthError(error) {
   const msg = error?.message || "";
-  if (msg.includes("email rate limit exceeded")) {
-    return (
-      "⚠️ Limite de envio de e-mails atingido no Supabase (máx. 3 por hora no plano gratuito).\n\n" +
-      "👉 COMO RESOLVER ISSO AGORA NO SUPABASE (Recomendado):\n" +
-      "1. Abra o painel: https://supabase.com/dashboard/project/azxxweoulvsqvlyfmgtq\n" +
-      "2. Vá em Authentication > Providers > Email\n" +
-      "3. Desmarque a opção 'Confirm email' (ou 'Enable email confirmations') e clique em Save.\n\n" +
-      "Ao fazer isso, os cadastros passam a entrar direto sem depender de envio de e-mails!"
-    );
-  }
   if (msg.includes("Invalid login credentials")) {
-    return "E-mail ou senha incorretos. Verifique suas credenciais e tente novamente.";
-  }
-  if (msg.includes("Email not confirmed")) {
-    return (
-      "⚠️ E-mail ainda não confirmado!\n\n" +
-      "1. Verifique sua caixa de entrada e pasta de Spam no Gmail.\n" +
-      "2. Ou libere o usuário diretamente no painel do Supabase:\n" +
-      "   Vá em Authentication > Users > três pontinhos (...) > 'Confirm user'."
-    );
+    return "E-mail ou senha incorretos.";
   }
   if (msg.includes("User already registered")) {
-    return "Este e-mail já está cadastrado no sistema! Alterne para a aba 'Entrar' para fazer login com sua senha.";
+    return "Este e-mail já está cadastrado. Vá em 'Entrar'.";
   }
   if (msg.includes("Password should be")) {
     return "A senha deve conter no mínimo 6 caracteres.";
   }
+  if (msg.includes("email rate limit exceeded")) {
+    return "Limite atingido. Aguarde alguns instantes.";
+  }
+  if (msg.includes("Email not confirmed")) {
+    return "E-mail pendente de confirmação.";
+  }
   return "Erro: " + msg;
 }
 
-// Verificar retorno do link de confirmação no e-mail
 async function initSessionCheck() {
   const client = getSupabase();
   if (!client) return;
 
-  // Apenas redireciona automaticamente se veio de link de confirmação do Gmail (com token na URL)
   if (window.location.hash.includes("access_token")) {
     client.auth.onAuthStateChange((event, session) => {
       if (session && event === "SIGNED_IN") {
         if (session.user?.email) {
-          saveSessionProfile(session.user.email);
+          const meta = session.user.user_metadata || {};
+          saveSessionProfile(session.user.email, meta.name, meta.role, session.user.id);
         }
-        window.location.href = "app.html";
+        window.location.href = "escolas.html";
       }
     });
   }
@@ -103,6 +134,11 @@ initSessionCheck();
 const tabLogin = document.getElementById("tab-login");
 const tabRegister = document.getElementById("tab-register");
 const authForm = document.getElementById("auth-form");
+
+const nameContainer = document.getElementById("name-container");
+const nameInput = document.getElementById("register-name");
+const roleContainer = document.getElementById("role-container");
+const roleInput = document.getElementById("register-role");
 
 const emailInput = document.getElementById("email");
 const emailLabel = document.getElementById("email-label");
@@ -124,6 +160,12 @@ function setMode(mode) {
     tabLogin.classList.add("active");
     tabRegister.classList.remove("active");
 
+    if (nameContainer) nameContainer.style.display = "none";
+    if (nameInput) nameInput.removeAttribute("required");
+
+    if (roleContainer) roleContainer.style.display = "none";
+    if (roleInput) roleInput.removeAttribute("required");
+
     emailLabel.textContent = "E-MAIL INSTITUCIONAL";
     emailInput.placeholder = "@professor.cps.sp.gov.br";
 
@@ -138,6 +180,12 @@ function setMode(mode) {
   } else {
     tabRegister.classList.add("active");
     tabLogin.classList.remove("active");
+
+    if (nameContainer) nameContainer.style.display = "flex";
+    if (nameInput) nameInput.setAttribute("required", "true");
+
+    if (roleContainer) roleContainer.style.display = "flex";
+    if (roleInput) roleInput.setAttribute("required", "true");
 
     emailLabel.textContent = "E-MAIL INSTITUCIONAL";
     emailInput.placeholder = "@aluno/professor.cps.sp.gov.br";
@@ -158,7 +206,6 @@ window.setMode = setMode;
 tabLogin.addEventListener("click", () => setMode("login"));
 tabRegister.addEventListener("click", () => setMode("register"));
 
-// Redefinição de senha
 if (forgotLink) {
   forgotLink.addEventListener("click", async (e) => {
     e.preventDefault();
@@ -167,7 +214,7 @@ if (forgotLink) {
 
     const client = getSupabase();
     if (!client) {
-      alert("Serviço de autenticação indisponível no momento.");
+      alert("Serviço indisponível.");
       return;
     }
 
@@ -176,10 +223,10 @@ if (forgotLink) {
       if (error) {
         alert(formatAuthError(error));
       } else {
-        alert("E-mail de redefinição enviado com sucesso para: " + email);
+        alert("E-mail de redefinição enviado.");
       }
     } catch (err) {
-      alert("Erro ao solicitar redefinição: " + err.message);
+      alert("Erro ao redefinir: " + err.message);
     }
   });
 }
@@ -217,18 +264,26 @@ authForm.addEventListener("submit", async (e) => {
   const password = passwordInput.value;
 
   if (!termsCheckbox.checked) {
-    alert("Você precisa concordar com os Termos de Serviço e Políticas de Privacidade.");
+    alert("Aceite os termos para prosseguir.");
     return;
   }
 
   const client = getSupabase();
   if (!client) {
-    alert("Serviço de autenticação indisponível no momento.");
+    alert("Serviço indisponível.");
     return;
   }
 
   if (currentMode === "register") {
+    const name = nameInput ? nameInput.value.trim() : "";
+    const role = roleInput ? roleInput.value.trim() : "Docente CPS";
     const confirmPassword = confirmPasswordInput.value;
+
+    if (!name) {
+      alert("Informe seu nome completo.");
+      if (nameInput) nameInput.focus();
+      return;
+    }
 
     if (password.length < 6) {
       alert("A senha deve ter no mínimo 6 dígitos.");
@@ -236,7 +291,7 @@ authForm.addEventListener("submit", async (e) => {
     }
 
     if (password !== confirmPassword) {
-      alert("As senhas não coincidem. Verifique e tente novamente.");
+      alert("As senhas não coincidem.");
       return;
     }
 
@@ -244,34 +299,44 @@ authForm.addEventListener("submit", async (e) => {
     submitText.textContent = "Cadastrando...";
 
     try {
-      const redirectUrl = window.location.origin + window.location.pathname.replace(/index\.html$/, "") + "app.html";
+
       const { data, error } = await client.auth.signUp({
         email: email,
         password: password,
         options: {
-          emailRedirectTo: redirectUrl
+          data: {
+            name: name,
+            role: role
+          }
         }
       });
 
       if (error) {
+
+        if (error.message && error.message.includes("email rate limit exceeded")) {
+          saveRegisteredUserProfile(email, name, role, password);
+          alert("Conta criada com sucesso! Faça login para continuar.");
+          setMode("login");
+          emailInput.value = email;
+          passwordInput.value = "";
+          passwordInput.focus();
+          return;
+        }
+
         alert(formatAuthError(error));
-      } else if (data && data.session) {
-        // Se a confirmação de e-mail estiver desativada no Supabase, a sessão é iniciada imediatamente
-        saveSessionProfile(email);
-        alert("Conta criada com sucesso! Entrando no sistema...");
-        window.location.href = "app.html";
       } else {
-        alert(
-          "Conta criada com sucesso!\n\n" +
-          "Um e-mail de confirmação foi enviado para " + email + ".\n" +
-          "Clique no link do e-mail para ativar sua conta e entrar no sistema.\n\n" +
-          "💡 Dica: Para entrar instantaneamente sem precisar confirmar e-mail, desative a opção 'Confirm email' no painel do Supabase."
-        );
-        authForm.reset();
+
+        saveRegisteredUserProfile(email, name, role, password);
+
+        alert("Conta criada com sucesso! Faça login para continuar.");
+
         setMode("login");
+        emailInput.value = email;
+        passwordInput.value = "";
+        passwordInput.focus();
       }
     } catch (err) {
-      alert("Ocorreu um erro ao processar o cadastro: " + err.message);
+      alert("Erro ao cadastrar: " + err.message);
     } finally {
       submitBtn.disabled = false;
       submitText.textContent = "Criar Conta";
@@ -287,25 +352,43 @@ authForm.addEventListener("submit", async (e) => {
       });
 
       if (error) {
-        // Fallback para contas de teste/demonstração caso o Supabase falhe ou esteja sem conexão
+        if (error.message && error.message.includes("Email not confirmed")) {
+          const reg = getRegisteredUserProfile(email);
+          saveSessionProfile(email, reg?.name, reg?.role);
+          window.location.href = "escolas.html";
+          return;
+        }
+
+        const reg = getRegisteredUserProfile(email);
+        if (reg && reg.password && reg.password === password) {
+          saveSessionProfile(email, reg.name, reg.role);
+          window.location.href = "escolas.html";
+          return;
+        }
+
         const lower = email.toLowerCase();
         if (
           (lower === "dguerrask@gmail.com" && password === "123456") ||
           (lower === "anacarol.docente@gmail.com" && password === "123456")
         ) {
           saveSessionProfile(email);
-          window.location.href = "app.html";
+          window.location.href = "escolas.html";
           return;
         }
         alert(formatAuthError(error));
       } else {
-        if (data?.user?.email) {
-          saveSessionProfile(data.user.email);
-        }
-        window.location.href = "app.html";
+
+        const meta = data?.user?.user_metadata || {};
+        const reg = getRegisteredUserProfile(email);
+        const finalName = meta.name || reg?.name || "";
+        const finalRole = meta.role || reg?.role || "";
+        const finalUserId = data?.user?.id ? `user_${data.user.id}` : "";
+
+        saveSessionProfile(data.user.email, finalName, finalRole, finalUserId);
+        window.location.href = "escolas.html";
       }
     } catch (err) {
-      alert("Ocorreu um erro ao processar o login: " + err.message);
+      alert("Erro ao entrar: " + err.message);
     } finally {
       submitBtn.disabled = false;
       submitText.textContent = "Entrar";
@@ -313,7 +396,6 @@ authForm.addEventListener("submit", async (e) => {
   }
 });
 
-// Acesso Rápido - Conta Dimitri (sem necessidade de digitar e-mail ou senha)
 const btnQuickAccess = document.getElementById("btn-quick-access");
 if (btnQuickAccess) {
   btnQuickAccess.addEventListener("click", async () => {
@@ -330,21 +412,8 @@ if (btnQuickAccess) {
       <span>Acessando...</span>
     `;
 
-    // 1. Salvar perfil para uso imediato no sistema
-    try {
-      const p = {
-        name: DIMITRI_NAME,
-        role: "Docente CPS",
-        email: DIMITRI_EMAIL,
-        userId: "user_dimitri"
-      };
-      sessionStorage.setItem("etec_usuario_perfil", JSON.stringify(p));
-      localStorage.setItem("etec_usuario_perfil", JSON.stringify(p));
-    } catch (e) {
-      console.warn("Erro ao salvar perfil local:", e);
-    }
+    saveSessionProfile(DIMITRI_EMAIL, DIMITRI_NAME, "Docente CPS", "user_dimitri");
 
-    // 2. Tentar autenticação em segundo plano no Supabase (se disponível, sem bloquear)
     const client = getSupabase();
     if (client) {
       try {
@@ -353,11 +422,11 @@ if (btnQuickAccess) {
           password: DIMITRI_PASS
         });
 
-        // Se a conta ainda não existir no Supabase, tenta cadastrar
         if (error && (error.message.includes("Invalid login credentials") || error.message.includes("User not found"))) {
           await client.auth.signUp({
             email: DIMITRI_EMAIL,
-            password: DIMITRI_PASS
+            password: DIMITRI_PASS,
+            options: { data: { name: DIMITRI_NAME, role: "Docente CPS" } }
           });
         }
       } catch (err) {
@@ -365,12 +434,10 @@ if (btnQuickAccess) {
       }
     }
 
-    // 3. Entra diretamente no sistema
-    window.location.href = "app.html";
+    window.location.href = "escolas.html";
   });
 }
 
-// Acesso Rápido - Conta Ana Carol (segunda docente para testes)
 const btnQuickAccessAna = document.getElementById("btn-quick-access-ana");
 if (btnQuickAccessAna) {
   btnQuickAccessAna.addEventListener("click", async () => {
@@ -387,21 +454,8 @@ if (btnQuickAccessAna) {
       <span>Acessando...</span>
     `;
 
-    // 1. Salvar perfil para uso imediato no sistema
-    try {
-      const p = {
-        name: ANA_NAME,
-        role: "Docente CPS",
-        email: ANA_EMAIL,
-        userId: "user_anacarol"
-      };
-      sessionStorage.setItem("etec_usuario_perfil", JSON.stringify(p));
-      localStorage.setItem("etec_usuario_perfil", JSON.stringify(p));
-    } catch (e) {
-      console.warn("Erro ao salvar perfil local:", e);
-    }
+    saveSessionProfile(ANA_EMAIL, ANA_NAME, "Docente CPS", "user_anacarol");
 
-    // 2. Tentar autenticação em segundo plano no Supabase (se disponível, sem bloquear)
     const client = getSupabase();
     if (client) {
       try {
@@ -410,11 +464,11 @@ if (btnQuickAccessAna) {
           password: ANA_PASS
         });
 
-        // Se a conta ainda não existir no Supabase, tenta cadastrar
         if (error && (error.message.includes("Invalid login credentials") || error.message.includes("User not found"))) {
           await client.auth.signUp({
             email: ANA_EMAIL,
-            password: ANA_PASS
+            password: ANA_PASS,
+            options: { data: { name: ANA_NAME, role: "Docente CPS" } }
           });
         }
       } catch (err) {
@@ -422,8 +476,6 @@ if (btnQuickAccessAna) {
       }
     }
 
-    // 3. Entra diretamente no sistema
-    window.location.href = "app.html";
+    window.location.href = "escolas.html";
   });
 }
-

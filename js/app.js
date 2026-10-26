@@ -34,13 +34,45 @@ const INTERVALS = {
 const STORAGE_KEY = "etec_reservas_dados";
 const NOTICES_KEY = "etec_avisos_dados";
 const SETTINGS_KEY = "etec_config_dados";
+const SCHOOL_STORAGE_KEY = "etec_escola_ativa";
 
 const syncChannel = (typeof window !== "undefined" && "BroadcastChannel" in window)
   ? new BroadcastChannel("etec_sync_reservations")
   : null;
 let localReservationsLastUpdated = Date.now();
 
-function getReservations() {
+function getActiveSchool() {
+  try {
+    const raw = sessionStorage.getItem(SCHOOL_STORAGE_KEY) || localStorage.getItem(SCHOOL_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.id) return parsed;
+    }
+  } catch (e) {}
+
+  const defaultSchool = {
+    id: "furlan",
+    name: "ETEC Antônio Furlan",
+    code: "ETEC-FURLAN",
+    city: "Barueri - SP",
+    description: "Sistema de agendamento de espaços"
+  };
+  try {
+    sessionStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(defaultSchool));
+    localStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(defaultSchool));
+  } catch (e) {}
+  return defaultSchool;
+}
+
+function updateSchoolUI() {
+  const school = getActiveSchool();
+  document.title = `${school.name} - Painel de Agendamentos`;
+
+  const footerEl = document.querySelector(".footer-copy");
+  if (footerEl) footerEl.textContent = `© 2026 ${school.name} • Centro Paula Souza`;
+}
+
+function getAllReservationsRaw() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -49,23 +81,71 @@ function getReservations() {
   }
 }
 
-function saveReservations(list) {
-  localReservationsLastUpdated = Date.now();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+function getReservations() {
+  const currentSchool = getActiveSchool();
+  const all = getAllReservationsRaw();
+  if (!Array.isArray(all)) return [];
+  return all.filter((r) => (r.schoolId || "furlan") === currentSchool.id);
+}
 
-  // 1. Instant sync across all tabs in the same browser (0ms)
+function saveReservations(schoolList) {
+  localReservationsLastUpdated = Date.now();
+  const currentSchool = getActiveSchool();
+
+  const sanitizedList = (schoolList || []).map((r) => ({
+    ...r,
+    schoolId: currentSchool.id
+  }));
+
+  const allCurrent = getAllReservationsRaw();
+  const others = allCurrent.filter((r) => (r.schoolId || "furlan") !== currentSchool.id);
+  const fullMerged = [...others, ...sanitizedList];
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(fullMerged));
+
   if (syncChannel) {
     try {
-      syncChannel.postMessage({ type: "RESERVATIONS_UPDATED", timestamp: localReservationsLastUpdated });
+      syncChannel.postMessage({
+        type: "RESERVATIONS_UPDATED",
+        schoolId: currentSchool.id,
+        timestamp: localReservationsLastUpdated
+      });
     } catch (e) {}
   }
 
-  // 2. Persist to server API in background for cross-browser / cross-window sync
   fetch("/api/reservations", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reservations: list })
+    body: JSON.stringify({
+      schoolId: currentSchool.id,
+      reservations: sanitizedList
+    })
   }).catch(() => {});
+
+  const supa = getAppSupabase();
+  if (supa) {
+    try {
+      const supaRows = sanitizedList.map((r) => ({
+        id: r.id,
+        school_id: r.schoolId || currentSchool.id,
+        space: r.space,
+        day: r.day,
+        date: r.date,
+        period: r.period,
+        slot_index: Number(r.slotIndex),
+        slot_label: r.slotLabel,
+        slot_time: r.slotTime,
+        description: r.description || "",
+        grade: r.grade || "Turma ETEC",
+        author_name: r.authorName,
+        author_role: r.authorRole || "Docente CPS",
+        author_id: r.authorId,
+        is_recurrent: Boolean(r.isRecurrent),
+        created_at: r.createdAt || new Date().toISOString()
+      }));
+      supa.from("agendamentos").upsert(supaRows).catch(() => {});
+    } catch (e) {}
+  }
 }
 
 function getNotices() {
@@ -86,7 +166,7 @@ const TOUR_STORAGE_KEY = "etec_tutorial_concluido";
 
 function getUserProfile() {
   try {
-    // 1. Check sessionStorage first (isolated per tab: allows Dimitri and Ana Carol to test simultaneously in 2 tabs!)
+
     const sessionRaw = sessionStorage.getItem(USER_PROFILE_KEY);
     if (sessionRaw) {
       const parsed = JSON.parse(sessionRaw);
@@ -97,7 +177,7 @@ function getUserProfile() {
         return parsed;
       }
     }
-    // 2. Fallback to localStorage
+
     const localRaw = localStorage.getItem(USER_PROFILE_KEY);
     if (localRaw) {
       const parsed = JSON.parse(localRaw);
@@ -141,10 +221,8 @@ function saveUserProfile(profile) {
   localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(merged));
   applyUserProfile(merged);
 
-  // Atualiza localmente todas as reservas pertencentes a este usuário
   updateReservationsAuthor(merged, oldName);
 
-  // Notifica o servidor para atualizar o arquivo persistente e propagar a todas as abas
   fetch("/api/update-profile", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -166,7 +244,6 @@ function saveUserProfile(profile) {
   }).catch(() => {});
 }
 
-// Atualiza o nome do autor em todas as reservas que pertencem a este usuário
 function updateReservationsAuthor(profile, oldName = "") {
   if (!profile || !profile.name) return;
   const list = getReservations();
@@ -182,11 +259,9 @@ function updateReservationsAuthor(profile, oldName = "") {
   const updatedList = list.map((res) => {
     if (!res) return res;
 
-    // Identifica se a reserva pertence ao usuário atual:
     const matchById = Boolean(targetUserId && res.authorId && res.authorId === targetUserId);
     const matchByOldName = Boolean(oldNameNorm && res.authorName && res.authorName.trim().toLowerCase() === oldNameNorm);
 
-    // Fallbacks para as contas do sistema
     const isUserDimitriAccount = targetUserId === "user_dimitri" || (profile.email && profile.email.toLowerCase() === "dguerrask@gmail.com");
     const matchKnownDimitri = isUserDimitriAccount && (
       res.authorId === "user_dimitri" ||
@@ -223,7 +298,6 @@ function updateReservationsAuthor(profile, oldName = "") {
   }
 }
 
-// Diretório dinâmico com o nome mais recente de cada usuário
 function getAuthorDirectory() {
   const reservations = getReservations();
   const dir = {
@@ -231,7 +305,6 @@ function getAuthorDirectory() {
     user_dimitri: { name: "Dimitri", role: "Docente CPS" }
   };
 
-  // Prioridade para o perfil ativo logado
   const myProfile = getUserProfile();
   if (myProfile && myProfile.userId && myProfile.name) {
     dir[myProfile.userId] = {
@@ -240,7 +313,6 @@ function getAuthorDirectory() {
     };
   }
 
-  // Mapeia todas as reservas encontradas para pegar a versão mais recente de cada autor
   reservations.forEach((r) => {
     if (r && r.authorId && r.authorName) {
       const prev = dir[r.authorId];
@@ -258,7 +330,6 @@ function getAuthorDirectory() {
   return dir;
 }
 
-// Retorna sempre o nome de exibição mais atualizado e correto para a reserva
 function getAuthorDisplayName(res) {
   if (!res) return "Docente ETEC";
   const myProfile = getUserProfile();
@@ -274,19 +345,18 @@ function getAuthorDisplayName(res) {
   return res.authorName || "Docente ETEC";
 }
 
-// Compare by unique userId (preferred) or fallback to name for old reservations
 function isOwnReservation(reservation, profile) {
   if (!reservation || !profile) return false;
   if (reservation.authorId && profile.userId) {
     return reservation.authorId === profile.userId;
   }
-  // Fallback for legacy reservations without authorId
+
   if (reservation.authorName && profile.name) {
     const rName = reservation.authorName.trim().toLowerCase();
     const pName = profile.name.trim().toLowerCase();
     if (rName && pName && rName === pName) return true;
   }
-  // Fallback for known test users if legacy reservation
+
   if (profile.userId === "user_dimitri" && reservation.authorName) {
     const rName = reservation.authorName.trim().toLowerCase();
     if (rName === "dimitri" || rName === "jow") return true;
@@ -333,7 +403,7 @@ const DAY_KEY_MAP = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
 
 function getTodayContext() {
   const now = new Date();
-  const dayOfWeek = now.getDay(); // 0 is Sunday, 6 is Saturday
+  const dayOfWeek = now.getDay(); 
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
   const todayY = now.getFullYear();
@@ -342,14 +412,13 @@ function getTodayContext() {
   const todayIso = `${todayY}-${todayM}-${todayD}`;
   const todayDayKey = DAY_KEY_MAP[dayOfWeek];
 
-  // If weekend, next school day is Monday; if weekday, today
   let activeSchoolDate = new Date(now);
   let isNextSchoolDay = false;
 
-  if (dayOfWeek === 6) { // Saturday -> Monday (+2)
+  if (dayOfWeek === 6) { 
     activeSchoolDate.setDate(now.getDate() + 2);
     isNextSchoolDay = true;
-  } else if (dayOfWeek === 0) { // Sunday -> Monday (+1)
+  } else if (dayOfWeek === 0) { 
     activeSchoolDate.setDate(now.getDate() + 1);
     isNextSchoolDay = true;
   }
@@ -403,12 +472,12 @@ const initialCtx = getTodayContext();
 
 let activeView = "inicio";
 let inicioPeriod = "manha";
-let agendaViewMode = "semanal"; // Padrão: semanal (apenas de seg a sex)
+let agendaViewMode = "semanal"; 
 let agendaPeriod = "manha";
 let agendaDay = initialCtx.schoolDayKey;
 let agendaDailyDay = initialCtx.schoolDayKey;
 let agendaDailyPeriod = "manha";
-let currentCalendarDate = new Date(); // Inicia dinamicamente com a data/mês atual
+let currentCalendarDate = new Date(); 
 
 let modalSpace = "Sala Maker";
 let modalPeriod = "manha";
@@ -542,7 +611,6 @@ function openModal(prefill = {}) {
     btn.classList.toggle("active", btn.getAttribute("data-period") === modalPeriod);
   });
 
-  // Calculate default valid date
   const now = new Date();
   const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -564,7 +632,7 @@ function openModal(prefill = {}) {
       }
     }
   } else {
-    // If today is Saturday (6), move to Monday (+2). If Sunday (0), move to Monday (+1).
+
     if (targetDate.getDay() === 6) {
       targetDate.setDate(targetDate.getDate() + 2);
     } else if (targetDate.getDay() === 0) {
@@ -587,7 +655,6 @@ function openModal(prefill = {}) {
     modalDateDisplay.textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
   }
 
-  // Ensure mini-calendar is closed initially
   const miniCal = document.getElementById("modal-mini-calendar");
   const dateBtn = document.getElementById("modal-date-btn");
   if (miniCal) miniCal.style.display = "none";
@@ -697,10 +764,8 @@ function renderMiniCalendar() {
   const lastDay = new Date(year, month + 1, 0);
   const totalDays = lastDay.getDate();
 
-  // Monday = 0 ... Sunday = 6
   const startingCol = (firstDay.getDay() + 6) % 7;
 
-  // Trailing previous month days (locked)
   const prevMonthLastDay = new Date(year, month, 0).getDate();
   for (let i = startingCol - 1; i >= 0; i--) {
     const dayNum = prevMonthLastDay - i;
@@ -750,11 +815,9 @@ function renderMiniCalendar() {
           modalDateDisplay.textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
         }
 
-        // Close mini-calendar
         if (modalMiniCal) modalMiniCal.style.display = "none";
         if (modalDateBtn) modalDateBtn.classList.remove("open");
 
-        // Automatically update available slots for this specific day!
         modalSelectedSlotIndex = 0;
         renderModalSlots();
         renderMiniCalendar();
@@ -764,7 +827,6 @@ function renderMiniCalendar() {
     miniCalDays.appendChild(btn);
   }
 
-  // Trailing next month days (locked)
   const totalCellsSoFar = startingCol + totalDays;
   const remainingCells = (7 - (totalCellsSoFar % 7)) % 7;
   for (let i = 1; i <= remainingCells; i++) {
@@ -788,22 +850,19 @@ function renderModalSlots() {
 
   const otherSpace = modalSpace === "Sala Maker" ? "Biblioteca" : "Sala Maker";
 
-  // Helper: check if a slot is reserved for a specific space (by anyone)
   const isSlotReserved = (space, index) => reservations.some((r) => {
     if (r.space !== space || r.period !== modalPeriod || r.slotIndex !== index) return false;
     if (r.date && modalSelectedDate) return r.date === modalSelectedDate;
     return r.day === modalDay;
   });
 
-  // Helper: check if the CURRENT USER already reserved the OTHER space for this slot
   const isSelfBlockedByOther = (index) => reservations.some((r) => {
     if (r.space !== otherSpace || r.period !== modalPeriod || r.slotIndex !== index) return false;
-    if (!isOwnReservation(r, profile)) return false; // only block SAME user
+    if (!isOwnReservation(r, profile)) return false; 
     if (r.date && modalSelectedDate) return r.date === modalSelectedDate;
     return r.day === modalDay;
   });
 
-  // Auto-pick first available slot if currently selected is blocked
   let firstAvailableIndex = -1;
   slots.forEach((slot, index) => {
     const reserved = isSlotReserved(modalSpace, index);
@@ -908,7 +967,6 @@ formAgendamento.addEventListener("submit", (e) => {
     return;
   }
 
-  // Exclusive slot check: block if the SAME USER already reserved the OTHER space for this slot
   const otherSpace = modalSpace === "Sala Maker" ? "Biblioteca" : "Sala Maker";
   const crossConflict = reservations.some(
     (r) => r.space === otherSpace &&
@@ -926,6 +984,7 @@ formAgendamento.addEventListener("submit", (e) => {
   const isRecurrent = recurrenceToggle.checked;
   const newReservation = {
     id: "res_" + Date.now(),
+    schoolId: getActiveSchool().id,
     space: modalSpace,
     day: modalDay,
     date: modalSelectedDate,
@@ -1091,7 +1150,6 @@ if (btnMonthToday) {
 function renderInicio() {
   const ctx = getTodayContext();
 
-  // 1. Atualizar subtítulo da navbar
   if (pageSubtitle) {
     pageSubtitle.textContent = ctx.now.toLocaleDateString("pt-BR", {
       day: "numeric",
@@ -1100,7 +1158,6 @@ function renderInicio() {
     });
   }
 
-  // 2. Título da seção de horários (quando for sábado ou domingo, mostra segunda-feira)
   const scheduleTitleEl = document.getElementById("inicio-schedule-title");
   if (scheduleTitleEl) {
     if (ctx.isWeekend) {
@@ -1111,7 +1168,6 @@ function renderInicio() {
     }
   }
 
-  // 3. Renderizar tabela de horários
   const tableBody = document.getElementById("today-schedule-body");
   const slots = SCHEDULES[inicioPeriod] || [];
   const reservations = getReservations();
@@ -1155,7 +1211,6 @@ function renderInicio() {
         `;
       }
 
-      // If the current user reserved the other room for this slot, this room is unavailable for them
       if (otherRes && isOwnReservation(otherRes, profile)) {
         return `
           <span class="status-badge status-unavailable" title="Você já reservou ${otherRes.space} nesta aula">
@@ -1211,7 +1266,6 @@ function renderInicio() {
     tableBody.appendChild(tr);
   });
 
-  // 4. Seção "Suas reservas de hoje" / "Suas reservas para segunda-feira"
   const todayReservationsTitle = document.getElementById("today-reservations-title");
   const todayDateIndicator = document.getElementById("today-date-indicator");
 
@@ -1227,7 +1281,6 @@ function renderInicio() {
   const cardsContainer = document.getElementById("today-reservations-container");
   cardsContainer.innerHTML = "";
 
-  // Apenas reservas do próprio usuário aparecem aqui!
   const relevantReservations = reservations.filter((r) => {
     if (!isOwnReservation(r, profile)) return false;
     if (r.date) return r.date === ctx.schoolIso;
@@ -1361,7 +1414,7 @@ function renderAgendaWeekly() {
           </button>
         `;
       }
-      // Only block if the SAME user already reserved the other space
+
       if (otherRes && isOwnReservation(otherRes, profile)) {
         return `
           <span class="status-badge status-unavailable" title="Você já reservou ${otherRes.space} nesta aula">
@@ -1496,7 +1549,6 @@ function renderAgendaDaily() {
         `;
       }
 
-      // If the current user reserved the other room for this slot, this room is unavailable for them
       if (otherRes && isOwnReservation(otherRes, profile)) {
         return `
           <span class="status-badge status-unavailable" title="Você já reservou ${otherRes.space} nesta aula">
@@ -1572,10 +1624,8 @@ function renderAgendaMonthly() {
   const lastDay = new Date(year, month + 1, 0);
   const totalDays = lastDay.getDate();
 
-  // Starting day: Monday = 0, ..., Sunday = 6
   let startingCol = (firstDay.getDay() + 6) % 7;
 
-  // Previous month trailing days
   const prevMonthLastDay = new Date(year, month, 0).getDate();
   for (let i = startingCol - 1; i >= 0; i--) {
     const dayNum = prevMonthLastDay - i;
@@ -1764,6 +1814,13 @@ function cancelReservation(id) {
   let list = getReservations();
   list = list.filter((r) => r.id !== id);
   saveReservations(list);
+
+  const supa = getAppSupabase();
+  if (supa) {
+    try {
+      supa.from("agendamentos").delete().eq("id", id).catch(() => {});
+    } catch (e) {}
+  }
 
   const notices = getNotices();
   notices.unshift({
@@ -2202,6 +2259,7 @@ if (btnRestartTour) {
 }
 
 function updateUI() {
+  updateSchoolUI();
   const profile = getUserProfile();
   const myCount = getReservations().filter((r) => isOwnReservation(r, profile)).length;
   if (navCounter) {
@@ -2239,16 +2297,29 @@ async function initAuthAndLogout() {
         let role = "Docente CPS";
         let userId = undefined;
 
+        const meta = session.user.user_metadata || {};
+        if (meta.name) formattedName = meta.name;
+        if (meta.role) role = meta.role;
+
+        if (!formattedName && currentProfile && currentProfile.name && currentProfile.email === email) {
+          formattedName = currentProfile.name;
+          role = currentProfile.role || role;
+        }
+
         if (lower === "dguerrask@gmail.com") {
-          formattedName = "Dimitri";
+          formattedName = formattedName || "Dimitri";
           userId = "user_dimitri";
         } else if (lower.includes("anacarol") || lower.includes("ana.carol")) {
-          formattedName = "Ana Carol";
+          formattedName = formattedName || "Ana Carol";
           userId = "user_anacarol";
         } else {
-          const namePart = email.split("@")[0].replace(/\./g, " ");
-          formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-          role = lower.includes("aluno") ? "Aluno CPS" : "Docente CPS";
+          if (!formattedName) {
+            const namePart = email.split("@")[0].replace(/\./g, " ");
+            formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+          }
+          if (!role) {
+            role = lower.includes("aluno") ? "Aluno CPS" : "Docente CPS";
+          }
         }
 
         saveUserProfile({
@@ -2264,18 +2335,10 @@ async function initAuthAndLogout() {
   }
 
   document.querySelectorAll(".logout-link").forEach((logoutLink) => {
-    logoutLink.addEventListener("click", async (e) => {
+    logoutLink.addEventListener("click", (e) => {
       e.preventDefault();
-      try {
-        sessionStorage.removeItem("etec_usuario_perfil");
-        localStorage.removeItem("etec_usuario_perfil");
-      } catch (err) {}
-      if (client) {
-        try {
-          await client.auth.signOut();
-        } catch (err) {}
-      }
-      window.location.href = "index.html";
+
+      window.location.href = "escolas.html";
     });
   });
 
@@ -2287,23 +2350,60 @@ async function initAuthAndLogout() {
   }
 }
 
-// === SINCRONIZAÇÃO EM TEMPO REAL ENTRE USUÁRIOS E ABAS ===
 async function syncReservationsFromServer(force = false) {
+
+  const supa = getAppSupabase();
+  if (supa) {
+    try {
+      const { data: supaRows } = await supa.from("agendamentos").select("*");
+      if (Array.isArray(supaRows) && supaRows.length > 0) {
+        const supaList = supaRows.map((row) => ({
+          id: row.id,
+          schoolId: row.school_id || "furlan",
+          space: row.space,
+          day: row.day,
+          date: row.date,
+          period: row.period,
+          slotIndex: Number(row.slot_index),
+          slotLabel: row.slot_label,
+          slotTime: row.slot_time,
+          description: row.description || "",
+          grade: row.grade || "Turma ETEC",
+          authorName: row.author_name,
+          authorRole: row.author_role || "Docente CPS",
+          authorId: row.author_id,
+          isRecurrent: Boolean(row.is_recurrent),
+          createdAt: row.created_at
+        }));
+
+        const currentLocal = getAllReservationsRaw();
+        const map = new Map();
+        supaList.forEach((r) => map.set(r.id, r));
+        currentLocal.forEach((r) => {
+          if (!map.has(r.id)) map.set(r.id, r);
+        });
+        const mergedList = Array.from(map.values());
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedList));
+        updateUI();
+      }
+    } catch (e) {}
+  }
+
   try {
     const res = await fetch("/api/reservations", { cache: "no-store" });
     if (!res.ok) return;
     const data = await res.json();
-    if (data && Array.isArray(data.reservations)) {
+    const serverList = data.allReservations || data.reservations;
+    if (data && Array.isArray(serverList)) {
       const serverTime = data.lastUpdated || 0;
-      const currentLocal = getReservations();
+      const currentLocalAll = getAllReservationsRaw();
 
-      if (force || serverTime > localReservationsLastUpdated || (currentLocal.length === 0 && data.reservations.length > 0)) {
+      if (force || serverTime > localReservationsLastUpdated || (currentLocalAll.length === 0 && serverList.length > 0)) {
         localReservationsLastUpdated = serverTime;
 
-        // Mesclagem inteligente: preserva reservas locais que ainda não foram enviadas ao servidor
         const map = new Map();
-        data.reservations.forEach((r) => map.set(r.id, r));
-        currentLocal.forEach((r) => {
+        serverList.forEach((r) => map.set(r.id, r));
+        currentLocalAll.forEach((r) => {
           if (!map.has(r.id)) {
             map.set(r.id, r);
           }
@@ -2312,7 +2412,6 @@ async function syncReservationsFromServer(force = false) {
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedList));
 
-        // Reconcilia o nome do autor em reservas antigas para o perfil ativo
         const profile = getUserProfile();
         updateReservationsAuthor(profile);
 
@@ -2321,25 +2420,24 @@ async function syncReservationsFromServer(force = false) {
           renderModalSlots();
         }
 
-        if (mergedList.length > data.reservations.length) {
+        if (mergedList.length > serverList.length) {
           fetch("/api/reservations", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ reservations: mergedList })
           }).catch(() => {});
         }
-      } else if (currentLocal.length > 0 && data.reservations.length === 0) {
+      } else if (currentLocalAll.length > 0 && serverList.length === 0) {
         fetch("/api/reservations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reservations: currentLocal })
+          body: JSON.stringify({ reservations: currentLocalAll })
         }).catch(() => {});
       }
     }
   } catch (e) {}
 }
 
-// 1. Sincronização instantânea via BroadcastChannel (0ms de atraso entre abas)
 if (syncChannel) {
   syncChannel.onmessage = (event) => {
     if (event.data && event.data.type === "RESERVATIONS_UPDATED") {
@@ -2351,7 +2449,6 @@ if (syncChannel) {
   };
 }
 
-// 2. Sincronização nativa entre janelas/abas
 window.addEventListener("storage", (e) => {
   if (e.key === STORAGE_KEY || e.key === "etec_reservas_dados") {
     updateUI();
@@ -2361,17 +2458,16 @@ window.addEventListener("storage", (e) => {
   }
 });
 
-// 3. Heartbeat periódico a cada 1.5s (garante atualização em tempo real entre navegadores diferentes sem F5!)
 setInterval(() => {
   syncReservationsFromServer(false);
 }, 1500);
 
-// Sincronização inicial no carregamento da tela
 syncReservationsFromServer(true);
 
 loadSettings();
 applyUserProfile();
 initAuthAndLogout();
+updateSchoolUI();
 updateReservationsAuthor(getUserProfile(), "Dimitri");
 updateUI();
 switchView("inicio");

@@ -712,7 +712,6 @@ body.highlight-focus .btn-cancel {
   white-space: nowrap;
 }
 
-/* 1. Sua reserva (usuário logado) - destaque verde */
 .status-mine {
   background-color: rgba(34, 197, 94, 0.12);
   color: #15803d;
@@ -734,7 +733,6 @@ body.dark-theme .status-mine.status-clickable:hover {
   background-color: rgba(46, 229, 157, 0.24);
 }
 
-/* 2. Reserva de outro professor - neutro/ardósia, totalmente diferente de verde */
 .status-other-user {
   background-color: #f1f5f9;
   color: #475569;
@@ -767,7 +765,6 @@ body.dark-theme .status-other-user.status-clickable:hover {
   vertical-align: middle;
 }
 
-/* 3. Compatibilidade para status-confirmed genérico */
 .status-confirmed {
   color: var(--status-confirmed-color);
 }
@@ -776,7 +773,6 @@ body.dark-theme .status-other-user.status-clickable:hover {
   color: var(--text-muted);
 }
 
-/* 4. Indisponível (quando o próprio usuário já reservou o outro espaço no mesmo horário) */
 .status-unavailable {
   color: var(--text-muted);
   opacity: 0.7;
@@ -1099,7 +1095,6 @@ body.dark-theme .status-other-user.status-clickable:hover {
   font-size: 11px;
 }
 
-/* Visão Diária */
 .daily-day-selector {
   display: flex;
   gap: 10px;
@@ -1149,7 +1144,6 @@ body.dark-theme .status-other-user.status-clickable:hover {
   color: var(--text-secondary);
 }
 
-/* Visão Mensal */
 .month-calendar-panel {
   overflow: hidden;
 }
@@ -1734,7 +1728,6 @@ body.dark-theme .calendar-day-cell.is-weekend {
   transform: rotate(180deg);
 }
 
-/* Mini Calendário Dropdown no Modal */
 .modal-mini-calendar {
   margin-top: 6px;
   background-color: var(--bg-card);
@@ -2376,11 +2369,6 @@ body.dark-theme .mini-cal-day.is-locked {
   color: var(--text-primary);
 }
 
-/* ==========================================================================
-   RESPONSIVIDADE E LAYOUT MOBILE (ESTILO APP NATIVO)
-   ========================================================================== */
-
-/* Tablets intermediários (769px - 1024px) */
 @media (min-width: 769px) and (max-width: 1024px) {
   .sidebar {
     width: 72px;
@@ -2410,9 +2398,6 @@ body.dark-theme .mini-cal-day.is-locked {
   }
 }
 
-/* ==========================================================================
-   Telas de Celular (Smartphones <= 768px) - LAYOUT MOBILE LIMPO E SIMPLES
-   ========================================================================== */
 @media (max-width: 768px) {
   html, body {
     overflow-x: hidden;
@@ -2434,11 +2419,6 @@ body.dark-theme .mini-cal-day.is-locked {
     flex-direction: column;
   }
 
-  /* ----------------------------------------------------
-     1. BARRA DE NAVEGAÇÃO INFERIOR FIXA (BOTTOM NAV)
-     - Altura confortável e área segura
-     - z-index 9000 (abaixo de modais que são z-index 100000)
-     ---------------------------------------------------- */
   .sidebar {
     position: fixed !important;
     bottom: 0 !important;
@@ -2537,7 +2517,6 @@ body.dark-theme .mini-cal-day.is-locked {
     transform: scale(1.1);
   }
 
-  /* Contador exclusivo no botão Minhas aulas */
   .nav-counter {
     display: flex !important;
     position: absolute !important;
@@ -2557,9 +2536,6 @@ body.dark-theme .mini-cal-day.is-locked {
     border: 1.5px solid var(--bg-sidebar) !important;
   }
 
-  /* ----------------------------------------------------
-     2. CABEÇALHO LIMPO E COMPACTO (APP BAR)
-     ---------------------------------------------------- */
   .dashboard-header {
     min-height: 54px !important;
     height: 54px !important;
@@ -2638,7 +2614,6 @@ body.dark-theme .mini-cal-day.is-locked {
     display: none !important;
   }
 
-  /* Botão principal + Agendar no topo */
   #btn-open-modal {
     padding: 7px 12px !important;
     font-size: 12px !important;
@@ -2685,11 +2660,6 @@ body.dark-theme .mini-cal-day.is-locked {
     display: none !important;
   }
 
-  /* ----------------------------------------------------
-     3. CORPO DE CONTEÚDO E ESPAÇAMENTO SEGURO
-     - 96px de padding inferior para que NENHUM elemento
-       seja coberto pela barra de navegação!
-     ---------------------------------------------------- */
   .content-body {
     padding: 12px 10px calc(96px + env(safe-area-inset-bottom, 0px)) 10px !important;
     width: 100% !important;
@@ -2728,7 +2698,6 @@ body.dark-theme .mini-cal-day.is-locked {
     font-weight: 700 !important;
   }
 
-  /* Abas de período (Manhã / Tarde / Noite) estilo pílula limpa */
   .period-tabs {
     gap: 4px !important;
     background: var(--bg-body) !important;
@@ -2750,11 +2719,6 @@ body.dark-theme .mini-cal-day.is-locked {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
   }
 
-  /* ----------------------------------------------------
-     4. TABELAS DE HORÁRIOS ULTRA LIMPAS E LEGÍVEIS
-     - Distribuição perfeita das 3 colunas no celular
-     - Botões táteis com altura confortável
-     ---------------------------------------------------- */
   .table-container {
     width: 100% !important;
     overflow-x: auto !important;
@@ -2829,7 +2793,6 @@ body.dark-theme .mini-cal-day.is-locked {
     line-height: 1.1 !important;
   }
 
-  /* Botão Reservar na tabela */
   .btn-reserve-slot {
     width: 100% !important;
     min-height: 36px !important;
@@ -2842,7 +2805,6 @@ body.dark-theme .mini-cal-day.is-locked {
     box-sizing: border-box !important;
   }
 
-  /* Badges de situação na tabela */
   .status-badge {
     width: 100% !important;
     min-height: 36px !important;
@@ -2875,9 +2837,6 @@ body.dark-theme .mini-cal-day.is-locked {
     opacity: 0.65 !important;
   }
 
-  /* ----------------------------------------------------
-     5. SEÇÃO DE RESERVAS DE HOJE & CARDS
-     ---------------------------------------------------- */
   .today-reservations-section {
     margin-top: 20px !important;
   }
@@ -2930,7 +2889,6 @@ body.dark-theme .mini-cal-day.is-locked {
     font-size: 11px !important;
   }
 
-  /* Painel de Avisos */
   .notice-item {
     padding: 10px 12px !important;
     gap: 10px !important;
@@ -2950,14 +2908,10 @@ body.dark-theme .mini-cal-day.is-locked {
     font-size: 10px !important;
   }
 
-  /* ----------------------------------------------------
-     6. TELA DA AGENDA NO CELULAR (SIMPLIFICADA)
-     ---------------------------------------------------- */
   .agenda-layout {
     gap: 14px !important;
   }
 
-  /* Subnav compacto com apenas Semanal e Mensal */
   .header-subnav {
     flex-direction: row !important;
     align-items: center !important;
@@ -3002,7 +2956,6 @@ body.dark-theme .mini-cal-day.is-locked {
     display: none !important;
   }
 
-  /* Seletor de dias da semana (Seg a Sex) */
   .week-tabs {
     display: flex !important;
     gap: 6px !important;
@@ -3048,7 +3001,6 @@ body.dark-theme .mini-cal-day.is-locked {
     opacity: 0.85 !important;
   }
 
-  /* Calendário Mensal */
   .month-calendar-header {
     flex-direction: column !important;
     align-items: stretch !important;
@@ -3112,9 +3064,6 @@ body.dark-theme .mini-cal-day.is-locked {
     line-height: 1.1 !important;
   }
 
-  /* ----------------------------------------------------
-     7. TELA DE MINHAS AULAS NO CELULAR
-     ---------------------------------------------------- */
   .my-classes-layout {
     gap: 16px !important;
   }
@@ -3125,9 +3074,6 @@ body.dark-theme .mini-cal-day.is-locked {
     gap: 12px !important;
   }
 
-  /* ----------------------------------------------------
-     8. TELA DE CONFIGURAÇÕES NO CELULAR
-     ---------------------------------------------------- */
   .settings-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
@@ -3163,22 +3109,16 @@ body.dark-theme .mini-cal-day.is-locked {
   }
 
   .setting-input-group input {
-    font-size: 16px !important; /* Previne auto-zoom no iOS */
+    font-size: 16px !important; 
     padding: 10px 12px !important;
     border-radius: 8px !important;
     height: 42px !important;
   }
 
-  /* ----------------------------------------------------
-     9. MODAIS NO CELULAR: SEMPRE ACIMA DA BARRA DE BAIXO!
-     - z-index 100000 (muito acima de qualquer elemento)
-     - padding inferior seguro com safe-area
-     - Botões táteis 100% visíveis e fáceis de clicar
-     ---------------------------------------------------- */
   .modal-backdrop {
     z-index: 100000 !important;
     padding: 0 !important;
-    align-items: flex-end !important; /* Bottom-sheet elegante */
+    align-items: flex-end !important; 
     background-color: rgba(0, 0, 0, 0.6) !important;
   }
 
@@ -3268,7 +3208,6 @@ body.dark-theme .mini-cal-day.is-locked {
     justify-content: center !important;
   }
 
-  /* Tutorial Tooltip no celular */
   #tour-tooltip {
     width: calc(100vw - 20px) !important;
     max-width: 340px !important;
@@ -3279,7 +3218,6 @@ body.dark-theme .mini-cal-day.is-locked {
     z-index: 9500 !important;
   }
 
-  /* Rodapé no celular: ocultar para evitar ruído */
   .app-footer,
   .bottom-footer {
     display: none !important;
