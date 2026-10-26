@@ -206,6 +206,16 @@ window.setMode = setMode;
 tabLogin.addEventListener("click", () => setMode("login"));
 tabRegister.addEventListener("click", () => setMode("register"));
 
+try {
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramMode = urlParams.get("mode");
+  if (paramMode === "register" || paramMode === "cadastro") {
+    setMode("register");
+  } else if (paramMode === "login" || paramMode === "entrar") {
+    setMode("login");
+  }
+} catch (e) {}
+
 if (forgotLink) {
   forgotLink.addEventListener("click", async (e) => {
     e.preventDefault();

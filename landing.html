@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplika. - Mais espaço para aprender</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/landing.css">
+</head>
+<body>
+
+  <!-- ======================================================================
+       HEADER / NAVBAR (Estilo Brutalista Suave)
+       ====================================================================== -->
+  <header class="landing-header">
+    <div class="header-inner">
+      <!-- Logo Oficial e Nome Aplika -->
+      <a href="landing.html" class="brand-wrapper">
+        <img src="img/logo.png" alt="Aplika Logo" class="brand-logo-img">
+        <span class="brand-title-text">Aplika<span class="brand-dot">.</span></span>
+      </a>
+
+      <!-- Slogan Central -->
+      <div class="header-tagline">
+        ESPAÇOS CONECTADOS. ESCOLAS EM MOVIMENTO.
+      </div>
+
+      <!-- Botões de Ação: Login e Cadastro -->
+      <div class="header-actions">
+        <a href="login.html?mode=login" class="btn-nav-login" title="Acessar conta existente">
+          Login
+        </a>
+        <a href="login.html?mode=register" class="btn-nav-cadastro" title="Criar nova conta">
+          Cadastro
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       HERO SECTION (Brutalista Suave, Sem LEDs/Glows)
+       ====================================================================== -->
+  <section class="hero-section" id="hero">
+    <div class="hero-grid">
+      
+      <!-- Coluna da Esquerda: Textos e Chamadas -->
+      <div class="hero-content">
+        <h1 class="hero-title">
+          <span class="hero-title-brand">Aplika.</span>
+          Mais espaço para <span class="hero-green-badge">aprender.</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Menos desencontro na agenda. Mais possibilidades na escola. Conecte professores aos espaços que transformam suas aulas.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#agenda-exemplo" class="btn-hero-primary" id="btn-explore-demo">
+            <span>Explorar a demonstração</span>
+            <span style="font-size: 17px;">↗</span>
+          </a>
+          <a href="contratar.html" class="btn-hero-secondary" title="Adicionar para minha instituição">
+            Adicionar minha escola
+          </a>
+        </div>
+
+        <span class="hero-footnote">
+          Uma proposta para escolas de todos os tamanhos.
+        </span>
+      </div>
+
+      <!-- Coluna da Direita: Console Brutalista Limpo e Despoluído -->
+      <div class="hero-visual-wrapper">
+        <div class="hero-brutalist-card">
+          <!-- 4 Parafusos de hardware característicos -->
+          <div class="screw screw-tl">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+              <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+              <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="screw screw-tr">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+              <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+              <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="screw screw-bl">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+              <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+              <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="screw screw-br">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+              <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+              <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- Top Bar Limpo e Organizado -->
+          <div class="console-clean-header">
+            <div class="console-title-group">
+              <img src="img/logo.png" alt="Aplika" style="width: 20px; height: 20px;">
+              <span>Agenda de Espaços</span>
+            </div>
+            <div class="console-period-selector">
+              <button type="button" class="period-pill-btn active" data-period="manha">Manhã</button>
+              <button type="button" class="period-pill-btn" data-period="tarde">Tarde</button>
+              <button type="button" class="period-pill-btn" data-period="noite">Noite</button>
+            </div>
+          </div>
+
+          <!-- Lista de Salas Despoluída (3 itens espaçosos) -->
+          <div class="console-rooms-list" id="hero-rooms-list">
+            <!-- Linhas inseridas dinamicamente via JS -->
+          </div>
+
+          <!-- Rodapé do Console -->
+          <div class="console-clean-footer">
+            <span class="status-dot-green"></span>
+            <span>Espaços sincronizados em tempo real</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       FAIXA AMARELA DE ESPAÇOS (Banner Fiel à Referência)
+       ====================================================================== -->
+  <section class="spaces-yellow-strip">
+    <div class="strip-inner">
+      <div class="strip-pill-tag">
+        O PRÓXIMO LUGAR DA SUA PRÓXIMA IDEIA
+      </div>
+
+      <div class="strip-items-row">
+        <div class="strip-space-item">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span>Bibliotecas</span>
+        </div>
+
+        <div class="strip-space-item">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 2v7.31"></path>
+            <path d="M14 9.3V2"></path>
+            <path d="M8.5 2h7"></path>
+            <path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path>
+          </svg>
+          <span>Laboratórios</span>
+        </div>
+
+        <div class="strip-space-item">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+          </svg>
+          <span>Salas maker</span>
+        </div>
+
+        <div class="strip-space-item">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span>Salas de informática</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       SEÇÃO 01: Uma agenda clara. Uma escola em sintonia.
+       ====================================================================== -->
+  <section class="section-sintonia">
+    <div class="section-tag-pill">
+      01 / MENOS BUROCRACIA, MAIS AULA
+    </div>
+
+    <div class="section-split-header">
+      <h2 class="section-main-heading">
+        Uma agenda clara.<br>
+        Uma escola em sintonia.
+      </h2>
+      <p class="section-header-desc">
+        Chega de procurar quem ficou com a chave ou perguntar se a sala está livre. O planejamento começa com informação no lugar certo.
+      </p>
+    </div>
+
+    <div class="cards-three-grid">
+      <!-- Card 01 -->
+      <div class="brutalist-feature-card">
+        <!-- Parafusos -->
+        <div class="screw screw-tl">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-tr">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-bl">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-br">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div>
+          <div class="card-header-row">
+            <div class="card-icon-square">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <span class="card-index-pill">01</span>
+          </div>
+
+          <h3 class="card-title-text">Encontre o horário certo</h3>
+          <p class="card-body-text">
+            Veja os espaços e horários em uma só agenda. Planeje a próxima aula com uma visão simples do dia.
+          </p>
+        </div>
+
+        <div>
+          <div class="card-divider-line"></div>
+          <a href="#agenda-exemplo" class="card-bottom-btn">
+            <span>Tudo à vista</span>
+            <span>↗</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card 02 -->
+      <div class="brutalist-feature-card">
+        <!-- Parafusos -->
+        <div class="screw screw-tl">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-tr">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-bl">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-br">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div>
+          <div class="card-header-row">
+            <div class="card-icon-square">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <span class="card-index-pill">02</span>
+          </div>
+
+          <h3 class="card-title-text">Organize sua rotina</h3>
+          <p class="card-body-text">
+            Acompanhe suas aulas e consulte os encontros recorrentes. Mais clareza para professores e coordenação.
+          </p>
+        </div>
+
+        <div>
+          <div class="card-divider-line"></div>
+          <a href="#agenda-exemplo" class="card-bottom-btn">
+            <span>Cada coisa no seu lugar</span>
+            <span>↗</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card 03 -->
+      <div class="brutalist-feature-card">
+        <!-- Parafusos -->
+        <div class="screw screw-tl">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-tr">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-bl">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-br">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div>
+          <div class="card-header-row">
+            <div class="card-icon-square">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </div>
+            <span class="card-index-pill">03</span>
+          </div>
+
+          <h3 class="card-title-text">Fique por dentro</h3>
+          <p class="card-body-text">
+            Receba avisos de mudanças, cancelamentos e manutenções. Informação importante sem se perder nas conversas.
+          </p>
+        </div>
+
+        <div>
+          <div class="card-divider-line"></div>
+          <a href="#agenda-exemplo" class="card-bottom-btn">
+            <span>Menos surpresas</span>
+            <span>↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       SEÇÃO 02: O dia da escola. Sem complicação.
+       ====================================================================== -->
+  <section class="section-complicacao" id="agenda-exemplo">
+    <div class="section-tag-pill">
+      02 / SIMPLIFICANDO O PRIMEIRO OLHAR
+    </div>
+
+    <div class="complicacao-grid">
+      <!-- Coluna de Texto e Checklists -->
+      <div class="complicacao-info-col">
+        <h2 class="section-main-heading">
+          O dia da escola.<br>
+          Sem complicação.
+        </h2>
+
+        <p class="section-header-desc" style="margin-top: 14px;">
+          Uma visão direta do que está reservado e do que está disponível. Para gastar menos tempo organizando e mais tempo ensinando.
+        </p>
+
+        <ul class="checklist-features-list">
+          <li class="checklist-item">
+            <span class="check-circle">✓</span>
+            <span>Horários separados por período</span>
+          </li>
+          <li class="checklist-item">
+            <span class="check-circle">✓</span>
+            <span>Reservas com identificação clara</span>
+          </li>
+          <li class="checklist-item">
+            <span class="check-circle">✓</span>
+            <span>Seus espaços em uma só consulta</span>
+          </li>
+        </ul>
+
+        <a href="contratar.html" class="btn-agenda-exemplo">
+          <span>Ver a agenda de exemplo</span>
+          <span style="font-size: 16px;">→</span>
+        </a>
+      </div>
+
+      <!-- Janela da Tabela Brutalista com Parafusos -->
+      <div class="dashboard-table-window">
+        <!-- Parafusos -->
+        <div class="screw screw-tl">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-tr">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-bl">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-br">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div class="dash-window-header">
+          <div class="dash-title-left">
+            <img src="img/logo.png" alt="A" style="width: 17px; height: 17px;">
+            <span>Agenda da escola</span>
+          </div>
+          <span class="dash-date-indicator">Segunda-feira</span>
+        </div>
+
+        <div class="dash-tabs-bar">
+          <button type="button" class="dash-tab-pill active" data-period="manha">Manhã</button>
+          <button type="button" class="dash-tab-pill" data-period="tarde">Tarde</button>
+          <button type="button" class="dash-tab-pill" data-period="noite">Noite</button>
+        </div>
+
+        <table class="dash-table-wrap">
+          <thead>
+            <tr>
+              <th>AULA / HORÁRIO</th>
+              <th>ESPAÇO</th>
+              <th>SITUAÇÃO</th>
+            </tr>
+          </thead>
+          <tbody id="dash-table-body">
+            <!-- Linhas inseridas dinamicamente via JS -->
+          </tbody>
+        </table>
+
+        <div class="dash-footer-note">
+          <span style="font-weight: 900; color: #16a34a;">✓</span>
+          <span>Mais organização para escolas em movimento.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       SEÇÃO 03: FECHAMENTO / CTA BOTTOM
+       ====================================================================== -->
+  <section class="section-cta-bottom">
+    <div class="section-tag-pill">
+      CADA ESCOLA TEM SEU JEITO. TODAS PRECISAM DE ESPAÇO.
+    </div>
+
+    <h2 class="cta-bottom-title">
+      Sua próxima grande aula<br>
+      começa com <span class="hero-green-badge">um lugar.</span>
+    </h2>
+
+    <a href="contratar.html" class="btn-cta-bottom">
+      <span>Conheça a Aplika</span>
+      <span style="font-size: 18px;">↗</span>
+    </a>
+
+    <span class="cta-disclaimer">
+      Demonstração com dados ilustrativos. Reservas reais em ambiente habilitado.
+    </span>
+  </section>
+
+  <!-- ======================================================================
+       FOOTER
+       ====================================================================== -->
+  <footer class="landing-footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <img src="img/logo.png" alt="Aplika" style="width: 22px; height: 22px;">
+        <span>Aplika<span class="brand-dot">.</span></span>
+      </div>
+      <div class="footer-center">
+        Mais espaço para aprender.
+      </div>
+      <div class="footer-copy">
+        © 2026 Aplika • Sistema Institucional de Agendamentos
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/landing.js"></script>
+</body>
+</html>

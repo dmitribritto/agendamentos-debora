@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETEC Antônio Furlan - Agendamento</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="top-nav" style="justify-content: space-between;">
+    <a href="landing.html" class="header-back-home" style="display: flex; align-items: center; gap: 8px; color: #8f8a9a; text-decoration: none; font-size: 13px; font-weight: 600; transition: color 0.15s ease;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      <span>Página Inicial (Aloca)</span>
+    </a>
+    <div class="header-support">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      <span>Ajuda / Suporte</span>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <section class="card-container">
+      <div class="auth-card">
+        <div class="screw screw-tl">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-tr">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-bl">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="screw screw-br">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#2d273a" stroke="#15131c" stroke-width="1.3"/>
+            <line x1="3.2" y1="3.2" x2="8.8" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="8.8" y1="3.2" x2="3.2" y2="8.8" stroke="#15131c" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div class="card-brand">
+          <img src="img/logo.png" alt="A" class="brand-logo">
+          <h1 class="brand-title">ETEC Antônio Furlan</h1>
+        </div>
+
+        <div class="tab-switcher">
+          <button type="button" class="tab-button active" id="tab-login">Entrar</button>
+          <button type="button" class="tab-button" id="tab-register">Criar Conta</button>
+        </div>
+
+        <form id="auth-form" autocomplete="on">
+          <div class="field-group" id="name-container" style="display: none;">
+            <label for="register-name">NOME COMPLETO</label>
+            <div class="input-wrapper">
+              <input type="text" id="register-name" placeholder="Ex: Prof. Marcelo Santos">
+            </div>
+          </div>
+
+          <div class="field-group" id="role-container" style="display: none;">
+            <label for="register-role">CARGO / FUNÇÃO</label>
+            <div class="input-wrapper">
+              <input type="text" id="register-role" placeholder="Ex: Docente CPS">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="email" id="email-label">E-MAIL INSTITUCIONAL</label>
+            <div class="input-wrapper">
+              <input type="email" id="email" placeholder="@professor.cps.sp.gov.br" required>
+              <span class="icon-suffix">@</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="label-row">
+              <label for="password" id="password-label">SENHA DO ALUNO / PROFESSOR</label>
+              <a href="#" class="forgot-link" id="forgot-link">Esqueceu a senha?</a>
+            </div>
+            <div class="input-wrapper">
+              <input type="password" id="password" placeholder="Senha do aluno/professor" required>
+              <button type="button" class="eye-toggle" data-input="password">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group" id="confirm-password-container" style="display: none;">
+            <label for="confirm-password">CONFIRMAR SENHA</label>
+            <div class="input-wrapper">
+              <input type="password" id="confirm-password" placeholder="Repita a senha">
+              <button type="button" class="eye-toggle" data-input="confirm-password">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-button" id="submit-btn">
+            <span id="submit-text">Entrar</span>
+            <span class="submit-arrow">→</span>
+          </button>
+
+          <div class="terms-row">
+            <label class="terms-checkbox-label">
+              <input type="checkbox" id="terms-checkbox" checked required>
+              <span class="checkbox-box"></span>
+            </label>
+            <p class="terms-text">
+              Eu concordo com os <a href="#" class="highlight-link">Termos de Serviço</a> e <a href="#" class="highlight-link">Políticas de Privacidade</a>
+            </p>
+          </div>
+
+          <div class="quick-access-wrapper">
+            <button type="button" class="quick-access-btn" id="btn-quick-access" title="Entrar diretamente como Dimitri (dguerrask@gmail.com / 123456)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+              <span>Acesso Rápido • Dimitri</span>
+            </button>
+            <button type="button" class="quick-access-btn" id="btn-quick-access-ana" title="Entrar diretamente como Ana Carol (anacarol.docente@gmail.com / 123456)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+              <span>Acesso Rápido • Ana Carol</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="illustration-panel">
+      <img src="img/illustration.png" alt="Sala Maker e Biblioteca" class="showcase-img">
+    </section>
+  </main>
+
+  <footer class="bottom-footer">
+    <div class="footer-left">
+      © ETEC Antônio Furlan • Governo do Estado de São Paulo
+    </div>
+    <div class="footer-right">
+      Sistema Institucional de Agendamento
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

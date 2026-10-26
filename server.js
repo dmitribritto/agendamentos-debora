@@ -250,6 +250,8 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
-  console.log(`Página de login: http://localhost:${PORT}/index.html`);
+  console.log(`Landing page (Aplika): http://localhost:${PORT}/ ou http://localhost:${PORT}/landing.html`);
+  console.log(`Página de login/cadastro: http://localhost:${PORT}/login.html`);
   console.log(`Painel de agendamentos: http://localhost:${PORT}/app.html`);
+  console.log(`Página de contratação: http://localhost:${PORT}/contratar.html`);
 });
