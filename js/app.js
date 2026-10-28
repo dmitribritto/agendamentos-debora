@@ -1580,21 +1580,24 @@ function renderMyClasses() {
   container.innerHTML = "";
   recurringContainer.innerHTML = "";
   const myReservations = reservations.filter((r) => isOwnReservation(r, profile));
+  const myNonRecurrent = myReservations.filter((r) => !r.isRecurrent);
+  const recurrentOnes = myReservations.filter((r) => r.isRecurrent);
   if (navCounter) {
     navCounter.textContent = myReservations.length;
   }
   if (activeView === "minhas-aulas" && pageSubtitle) {
-    pageSubtitle.textContent = `${myReservations.length} ${myReservations.length === 1 ? "reserva" : "reservas"}`;
+    const totalCount = myNonRecurrent.length + recurrentOnes.length;
+    pageSubtitle.textContent = `${totalCount} ${totalCount === 1 ? "reserva" : "reservas"}`;
   }
-  if (myReservations.length === 0) {
+  if (myNonRecurrent.length === 0) {
     container.innerHTML = `
       <div class="empty-state-card">
-        Você não possui nenhuma reserva cadastrada.<br>
-        Clique em <strong>+ Agendar espaço</strong> acima para realizar sua primeira reserva.
+        Nenhuma reserva pontual cadastrada.<br>
+        Clique em <strong>+ Agendar espaço</strong> acima para agendar uma aula.
       </div>
     `;
   } else {
-    myReservations.forEach((res) => {
+    myNonRecurrent.forEach((res) => {
       const card = document.createElement("div");
       card.className = "class-card";
       const isMaker = res.space === "Sala Maker";
@@ -1630,7 +1633,6 @@ function renderMyClasses() {
       container.appendChild(card);
     });
   }
-  const recurrentOnes = myReservations.filter((r) => r.isRecurrent);
   if (recurrentOnes.length === 0) {
     recurringContainer.innerHTML = `
       <div style="text-align: center; color: #7a748c; padding: 20px; font-size: 12.5px;">
@@ -1639,6 +1641,8 @@ function renderMyClasses() {
     `;
   } else {
     recurrentOnes.forEach((r) => {
+      const dayKey = r.day || "seg";
+      const dayLabel = DAY_FULL_LABELS[dayKey] || dayKey;
       const item = document.createElement("div");
       item.className = "recurring-item";
       item.innerHTML = `
@@ -1651,9 +1655,13 @@ function renderMyClasses() {
         </div>
         <div class="recurring-details">
           <span class="recurring-title">${r.description} · ${r.space}</span>
-          <span class="recurring-desc">Semanal · ${r.slotLabel} (${r.slotTime})</span>
+          <span class="recurring-desc">Toda ${dayLabel} · ${r.slotLabel} (${r.slotTime})</span>
         </div>
       `;
+      item.style.cursor = "pointer";
+      item.addEventListener("click", () => {
+        openReservationDetails(r.id);
+      });
       recurringContainer.appendChild(item);
     });
   }
