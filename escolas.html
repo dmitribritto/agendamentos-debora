@@ -11,7 +11,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
   <header class="escolas-top-nav">
     <div class="user-connected-badge">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -20,7 +19,6 @@
       </svg>
       <span>Conectado como: <strong id="top-user-name">Docente CPS</strong></span>
     </div>
-
     <div class="top-nav-actions">
       <div class="nav-action-link" title="Central de suporte">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -40,34 +38,27 @@
       </a>
     </div>
   </header>
-
   <main class="escolas-main-wrapper">
     <div class="escolas-container">
-
       <div class="escolas-header-block">
         <h1 class="escolas-main-title">Onde você deseja entrar?</h1>
         <p class="escolas-subtitle">Selecione uma escola para acessar sua agenda de espaços.</p>
       </div>
-
       <section class="school-selection-card">
         <div class="school-badge-pill">Suas escolas</div>
         <div class="schools-list" id="user-schools-container">
-
         </div>
       </section>
-
       <section class="school-selection-card">
         <div class="school-badge-pill">Entrar em outra escola</div>
         <p class="card-helper-text">
           Use o código fornecido pela instituição para acessar o sistema de agendamento dela.
         </p>
-
         <form id="search-school-form">
           <label class="code-field-label" for="school-code-input">Código da escola</label>
           <div class="code-input-row">
             <div class="code-input-wrapper">
               <span class="code-input-icon">
-
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 21h18"></path>
                   <path d="M3 10h18"></path>
@@ -93,16 +84,13 @@
             </button>
           </div>
         </form>
-
         <div class="code-info-note">
           <span class="info-icon-blue">i</span>
           <span>O código deve ser fornecido pela administração da escola.</span>
         </div>
-
         <div class="or-divider-row">
           <span class="or-text-badge">Ou</span>
         </div>
-
         <a href="contratar.html" class="invite-access-btn" id="btn-add-school" title="Contratar e adicionar uma nova instituição">
           <div class="invite-btn-left">
             <span class="add-school-btn-icon">
@@ -120,10 +108,8 @@
           <span class="invite-btn-arrow">→</span>
         </a>
       </section>
-
     </div>
   </main>
-
   <footer class="escolas-footer">
     <div class="footer-left">
       © ETEC • Governo do Estado de São Paulo • Centro Paula Souza
@@ -132,7 +118,6 @@
       Sistema Institucional de Agendamento
     </div>
   </footer>
-
   <div class="invite-modal-overlay" id="invite-modal">
     <div class="invite-modal-card">
       <h3 class="invite-modal-title">Entrar com convite da escola</h3>
@@ -151,7 +136,6 @@
       </div>
     </div>
   </div>
-
   <script src="js/escolas.js"></script>
 </body>
 </html>

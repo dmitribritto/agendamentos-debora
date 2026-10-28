@@ -1,11 +1,9 @@
-
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: 'Inter', sans-serif;
 }
-
 body {
   background-color: #1f192b;
   color: #ffffff;
@@ -15,7 +13,6 @@ body {
   justify-content: space-between;
   overflow-x: hidden;
 }
-
 .escolas-top-nav {
   width: 100%;
   max-width: 800px;
@@ -25,7 +22,6 @@ body {
   justify-content: space-between;
   align-items: center;
 }
-
 .user-connected-badge {
   display: flex;
   align-items: center;
@@ -38,18 +34,15 @@ body {
   color: #e5e3ea;
   font-weight: 500;
 }
-
 .user-connected-badge strong {
   color: #ffffff;
   font-weight: 700;
 }
-
 .top-nav-actions {
   display: flex;
   align-items: center;
   gap: 16px;
 }
-
 .nav-action-link {
   display: flex;
   align-items: center;
@@ -61,19 +54,15 @@ body {
   cursor: pointer;
   transition: color 0.15s ease;
 }
-
 .nav-action-link:hover {
   color: #ffffff;
 }
-
 .nav-action-link.logout-action {
   color: #f87171;
 }
-
 .nav-action-link.logout-action:hover {
   color: #fca5a5;
 }
-
 .escolas-main-wrapper {
   flex: 1;
   display: flex;
@@ -83,16 +72,13 @@ body {
   padding: 24px 20px 32px 20px;
   width: 100%;
 }
-
 .escolas-container {
   width: 100%;
   max-width: 540px;
 }
-
 .escolas-header-block {
   margin-bottom: 22px;
 }
-
 .escolas-main-title {
   font-size: 30px;
   font-weight: 800;
@@ -101,14 +87,12 @@ body {
   line-height: 1.2;
   margin-bottom: 8px;
 }
-
 .escolas-subtitle {
   font-size: 14px;
   font-weight: 400;
   color: #9d99ab;
   line-height: 1.4;
 }
-
 .school-selection-card {
   background-color: #dfdbb6;
   border: 2.5px solid #000000;
@@ -118,7 +102,6 @@ body {
   margin-bottom: 22px;
   position: relative;
 }
-
 .school-badge-pill {
   display: inline-flex;
   align-items: center;
@@ -132,13 +115,11 @@ body {
   letter-spacing: -0.2px;
   margin-bottom: 16px;
 }
-
 .schools-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-
 .school-item-row {
   display: flex;
   align-items: center;
@@ -147,12 +128,10 @@ body {
   padding: 10px 0;
   border-bottom: 1.5px dashed rgba(0, 0, 0, 0.15);
 }
-
 .school-item-row:last-child {
   border-bottom: none;
   padding-bottom: 4px;
 }
-
 .school-item-left {
   display: flex;
   align-items: center;
@@ -160,7 +139,6 @@ body {
   flex: 1;
   min-width: 0;
 }
-
 .school-icon-wrapper {
   width: 52px;
   height: 52px;
@@ -169,19 +147,16 @@ body {
   align-items: center;
   justify-content: center;
 }
-
 .school-building-svg {
   width: 100%;
   height: 100%;
   filter: drop-shadow(1px 2px 0px rgba(0, 0, 0, 0.2));
 }
-
 .school-info-col {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
-
 .school-name {
   font-size: 17px;
   font-weight: 800;
@@ -191,7 +166,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .school-desc {
   font-size: 12.5px;
   font-weight: 500;
@@ -201,7 +175,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .school-code-tag {
   display: inline-block;
   font-size: 10.5px;
@@ -213,7 +186,6 @@ body {
   margin-top: 4px;
   width: fit-content;
 }
-
 .btn-enter-school {
   background-color: #22c55e;
   border: 2px solid #000000;
@@ -231,18 +203,15 @@ body {
   transition: all 0.12s ease;
   flex-shrink: 0;
 }
-
 .btn-enter-school:hover {
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0px #000000;
   background-color: #2bd669;
 }
-
 .btn-enter-school:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0px #000000;
 }
-
 .card-helper-text {
   font-size: 12.5px;
   font-weight: 500;
@@ -250,7 +219,6 @@ body {
   line-height: 1.45;
   margin-bottom: 14px;
 }
-
 .code-field-label {
   display: block;
   font-size: 11px;
@@ -259,14 +227,12 @@ body {
   letter-spacing: 0.5px;
   margin-bottom: 6px;
 }
-
 .code-input-row {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
 }
-
 .code-input-wrapper {
   flex: 1;
   display: flex;
@@ -279,7 +245,6 @@ body {
   height: 48px;
   padding: 0 14px;
 }
-
 .code-input-icon {
   color: #1f192b;
   display: flex;
@@ -287,7 +252,6 @@ body {
   justify-content: center;
   flex-shrink: 0;
 }
-
 .school-code-input {
   flex: 1;
   border: none;
@@ -299,13 +263,11 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
 .school-code-input::placeholder {
   color: #7b7884;
   font-weight: 500;
   text-transform: none;
 }
-
 .btn-search-school {
   height: 48px;
   padding: 0 20px;
@@ -324,18 +286,15 @@ body {
   transition: all 0.12s ease;
   flex-shrink: 0;
 }
-
 .btn-search-school:hover {
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0px #000000;
   background-color: #2bd669;
 }
-
 .btn-search-school:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0px #000000;
 }
-
 .code-info-note {
   display: flex;
   align-items: center;
@@ -345,7 +304,6 @@ body {
   color: #4a4655;
   font-weight: 500;
 }
-
 .info-icon-blue {
   width: 15px;
   height: 15px;
@@ -359,7 +317,6 @@ body {
   font-weight: 800;
   flex-shrink: 0;
 }
-
 .or-divider-row {
   display: flex;
   align-items: center;
@@ -367,26 +324,22 @@ body {
   position: relative;
   text-align: center;
 }
-
 .or-divider-row::before {
   content: '';
   flex: 1;
   border-bottom: 1.5px solid #000000;
 }
-
 .or-divider-row::after {
   content: '';
   flex: 1;
   border-bottom: 1.5px solid #000000;
 }
-
 .or-text-badge {
   padding: 0 12px;
   font-size: 12px;
   font-weight: 700;
   color: #1e1b26;
 }
-
 .invite-access-btn {
   width: 100%;
   background-color: #ffffff;
@@ -403,25 +356,21 @@ body {
   text-decoration: none;
   color: #000000;
 }
-
 .invite-access-btn:hover {
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0px #000000;
   background-color: #fbfbfb;
   color: #000000;
 }
-
 .invite-access-btn:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0px #000000;
 }
-
 .invite-btn-left {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .add-school-btn-icon {
   width: 28px;
   height: 28px;
@@ -434,7 +383,6 @@ body {
   flex-shrink: 0;
   box-shadow: 1px 1px 0px #000000;
 }
-
 .invite-mail-icon {
   width: 24px;
   height: 18px;
@@ -446,7 +394,6 @@ body {
   justify-content: center;
   position: relative;
 }
-
 .invite-mail-icon::after {
   content: '';
   position: absolute;
@@ -457,19 +404,16 @@ body {
   border-right: 9px solid transparent;
   border-top: 8px solid #000000;
 }
-
 .invite-btn-title {
   font-size: 13.5px;
   font-weight: 700;
   color: #000000;
 }
-
 .invite-btn-arrow {
   font-size: 18px;
   font-weight: 800;
   color: #000000;
 }
-
 .no-schools-box {
   padding: 16px 14px;
   background-color: rgba(255, 255, 255, 0.5);
@@ -480,7 +424,6 @@ body {
   font-size: 13px;
   line-height: 1.45;
 }
-
 .escolas-footer {
   width: 100%;
   max-width: 800px;
@@ -492,7 +435,6 @@ body {
   font-size: 12px;
   color: #635f6e;
 }
-
 .invite-modal-overlay {
   position: fixed;
   inset: 0;
@@ -504,11 +446,9 @@ body {
   z-index: 9999;
   padding: 20px;
 }
-
 .invite-modal-overlay.active {
   display: flex;
 }
-
 .invite-modal-card {
   background-color: #dfdbb6;
   border: 2.5px solid #000000;
@@ -520,7 +460,6 @@ body {
   position: relative;
   animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 @keyframes popIn {
   from {
     transform: scale(0.95);
@@ -531,21 +470,18 @@ body {
     opacity: 1;
   }
 }
-
 .invite-modal-title {
   font-size: 20px;
   font-weight: 800;
   color: #000000;
   margin-bottom: 8px;
 }
-
 .invite-modal-desc {
   font-size: 13px;
   color: #383443;
   margin-bottom: 18px;
   line-height: 1.45;
 }
-
 .invite-modal-input {
   width: 100%;
   height: 48px;
@@ -560,14 +496,12 @@ body {
   outline: none;
   margin-bottom: 18px;
 }
-
 .invite-modal-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
 }
-
 .btn-modal-cancel {
   background: transparent;
   border: 2px solid #000000;
@@ -578,7 +512,6 @@ body {
   color: #000000;
   cursor: pointer;
 }
-
 .btn-modal-confirm {
   background-color: #22c55e;
   border: 2px solid #000000;
@@ -590,37 +523,30 @@ body {
   color: #000000;
   cursor: pointer;
 }
-
 @media (max-width: 600px) {
   .escolas-main-title {
     font-size: 24px;
   }
-
   .school-selection-card {
     padding: 20px 18px;
     border-radius: 20px;
   }
-
   .code-input-row {
     flex-direction: column;
     align-items: stretch;
   }
-
   .btn-search-school {
     width: 100%;
   }
-
   .school-item-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-
   .btn-enter-school {
     width: 100%;
     justify-content: center;
   }
-
   .escolas-footer {
     flex-direction: column;
     gap: 6px;

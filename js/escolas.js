@@ -1,7 +1,5 @@
-
 const SUPABASE_URL = "https://azxxweoulvsqvlyfmgtq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_n85S7m9uS_TThMm9zo63jA_fHAgpjLP";
-
 let supabaseClient = null;
 function getSupabase() {
   if (!supabaseClient && window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
@@ -9,11 +7,9 @@ function getSupabase() {
   }
   return supabaseClient;
 }
-
 const SCHOOL_STORAGE_KEY = "etec_escola_ativa";
 const USER_SCHOOLS_KEY = "etec_usuario_escolas";
 const USER_PROFILE_KEY = "etec_usuario_perfil";
-
 const DEFAULT_SCHOOL_CATALOG = [
   {
     id: "furlan",
@@ -24,7 +20,6 @@ const DEFAULT_SCHOOL_CATALOG = [
     description: "Sistema de agendamento de espaços"
   }
 ];
-
 function getSchoolBuildingSVG() {
   return `
     <svg viewBox="0 0 80 70" fill="none" xmlns="http://www.w3.org/2000/svg" class="school-building-svg">
@@ -45,7 +40,6 @@ function getSchoolBuildingSVG() {
     </svg>
   `;
 }
-
 function getUser() {
   try {
     const raw = sessionStorage.getItem(USER_PROFILE_KEY) || localStorage.getItem(USER_PROFILE_KEY);
@@ -53,7 +47,6 @@ function getUser() {
   } catch (e) {}
   return { name: "Docente", role: "Docente CPS", email: "" };
 }
-
 function getUserSchools() {
   const user = getUser();
   const isQuickAccess = user && (
@@ -63,9 +56,7 @@ function getUserSchools() {
     user.email === "anacarol.docente@gmail.com" ||
     user.isQuickAccess === true
   );
-
   const userKey = user && user.userId ? `etec_escolas_${user.userId}` : USER_SCHOOLS_KEY;
-
   try {
     const raw = localStorage.getItem(userKey);
     if (raw) {
@@ -77,7 +68,6 @@ function getUserSchools() {
       }
     }
   } catch (e) {}
-
   if (isQuickAccess) {
     const defaultList = [DEFAULT_SCHOOL_CATALOG[0]];
     try {
@@ -86,10 +76,8 @@ function getUserSchools() {
     } catch (e) {}
     return defaultList;
   }
-
   return [];
 }
-
 function saveUserSchools(list) {
   const user = getUser();
   const userKey = user && user.userId ? `etec_escolas_${user.userId}` : USER_SCHOOLS_KEY;
@@ -98,24 +86,19 @@ function saveUserSchools(list) {
     localStorage.setItem(USER_SCHOOLS_KEY, JSON.stringify(list));
   } catch (e) {}
 }
-
 function selectSchoolAndEnter(school) {
   if (!school || !school.id) return;
   try {
     sessionStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(school));
     localStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(school));
   } catch (e) {}
-
   window.location.href = "app.html";
 }
-
 function renderUserSchools() {
   const container = document.getElementById("user-schools-container");
   if (!container) return;
-
   const schools = getUserSchools();
   container.innerHTML = "";
-
   if (schools.length === 0) {
     container.innerHTML = `
       <div class="no-schools-box">
@@ -127,7 +110,6 @@ function renderUserSchools() {
     `;
     return;
   }
-
   schools.forEach((school) => {
     const row = document.createElement("div");
     row.className = "school-item-row";
@@ -146,27 +128,22 @@ function renderUserSchools() {
         <span>→</span>
       </button>
     `;
-
     const enterBtn = row.querySelector(".btn-enter-school");
     enterBtn.addEventListener("click", () => {
       enterBtn.disabled = true;
       enterBtn.innerHTML = `<span>Entrando...</span>`;
       selectSchoolAndEnter(school);
     });
-
     container.appendChild(row);
   });
 }
-
 async function findAndJoinSchoolByCode(rawCode) {
   if (!rawCode || !rawCode.trim()) {
     alert("Digite o código da escola.");
     return;
   }
-
   const cleanCode = rawCode.trim().toUpperCase();
   let found = null;
-
   const client = getSupabase();
   if (client) {
     try {
@@ -185,25 +162,20 @@ async function findAndJoinSchoolByCode(rawCode) {
       }
     } catch (e) {}
   }
-
   if (!found) {
     const furlan = DEFAULT_SCHOOL_CATALOG[0];
     const isMatch = furlan.code.toUpperCase() === cleanCode || 
                     (furlan.aliases && furlan.aliases.some((a) => a.toUpperCase() === cleanCode));
     if (isMatch) found = furlan;
   }
-
   if (!found) {
     alert("Código de escola inválido.");
     return;
   }
-
   saveUserSchools([found]);
   renderUserSchools();
-
   selectSchoolAndEnter(found);
 }
-
 (function purgeLegacySchools() {
   try {
     const raw = localStorage.getItem(USER_SCHOOLS_KEY);
@@ -224,19 +196,15 @@ async function findAndJoinSchoolByCode(rawCode) {
     }
   } catch (e) {}
 })();
-
 document.addEventListener("DOMContentLoaded", () => {
   const user = getUser();
   const userNameEl = document.getElementById("top-user-name");
   if (userNameEl && user.name) {
     userNameEl.textContent = user.name;
   }
-
   renderUserSchools();
-
   const searchForm = document.getElementById("search-school-form");
   const codeInput = document.getElementById("school-code-input");
-
   if (searchForm && codeInput) {
     searchForm.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -244,13 +212,11 @@ document.addEventListener("DOMContentLoaded", () => {
       findAndJoinSchoolByCode(code);
     });
   }
-
   const inviteBtn = document.getElementById("btn-invite-access");
   const inviteModal = document.getElementById("invite-modal");
   const cancelInviteBtn = document.getElementById("btn-cancel-invite");
   const confirmInviteBtn = document.getElementById("btn-confirm-invite");
   const inviteCodeInput = document.getElementById("invite-code-input");
-
   if (inviteBtn && inviteModal) {
     inviteBtn.addEventListener("click", () => {
       inviteModal.classList.add("active");
@@ -259,13 +225,11 @@ document.addEventListener("DOMContentLoaded", () => {
         inviteCodeInput.focus();
       }
     });
-
     if (cancelInviteBtn) {
       cancelInviteBtn.addEventListener("click", () => {
         inviteModal.classList.remove("active");
       });
     }
-
     if (confirmInviteBtn && inviteCodeInput) {
       confirmInviteBtn.addEventListener("click", () => {
         let code = inviteCodeInput.value.trim();
@@ -281,7 +245,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     }
-
     inviteModal.addEventListener("click", (e) => {
       if (e.target === inviteModal) {
         inviteModal.classList.remove("active");

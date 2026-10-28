@@ -1,13 +1,4 @@
-// ==========================================================================
-// ALOCA. - Landing Page Interactive Script
-// Gerenciamento de abas e interatividade do console e da tabela
-// ==========================================================================
-
 document.addEventListener('DOMContentLoaded', () => {
-
-  // ------------------------------------------------------------------------
-  // 1. Dados e Interatividade do Hero Console
-  // ------------------------------------------------------------------------
   const heroRoomsData = {
     manha: [
       {
@@ -79,14 +70,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     ]
   };
-
   const heroPeriodBtns = document.querySelectorAll('.hero-brutalist-card .period-pill-btn, .hero-console-card .period-pill-btn');
   const heroRoomsContainer = document.getElementById('hero-rooms-list');
-
   function renderHeroRooms(period) {
     if (!heroRoomsContainer) return;
     const rooms = heroRoomsData[period] || heroRoomsData.manha;
-    
     heroRoomsContainer.innerHTML = rooms.map(room => `
       <div class="brutalist-room-row">
         <div class="room-left-group">
@@ -100,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `).join('');
   }
-
   heroPeriodBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       heroPeriodBtns.forEach(b => b.classList.remove('active'));
@@ -109,13 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderHeroRooms(period);
     });
   });
-
-  // Render inicial
   renderHeroRooms('manha');
-
-  // ------------------------------------------------------------------------
-  // 2. Interatividade da Tabela da Seção 2 (O dia da escola)
-  // ------------------------------------------------------------------------
   const tableData = {
     manha: [
       {
@@ -187,14 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     ]
   };
-
   const dashTabBtns = document.querySelectorAll('.dash-tabs-bar .dash-tab-pill');
   const dashTableBody = document.getElementById('dash-table-body');
-
   function renderDashTable(period) {
     if (!dashTableBody) return;
     const rows = tableData[period] || tableData.manha;
-    
     dashTableBody.innerHTML = rows.map(r => `
       <tr>
         <td>
@@ -212,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </tr>
     `).join('');
   }
-
   dashTabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       dashTabBtns.forEach(b => b.classList.remove('active'));
@@ -221,11 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderDashTable(period);
     });
   });
-
-  // Render inicial da tabela
   renderDashTable('manha');
-
-  // Efeito de rolagem suave ao clicar em "Explorar a demonstração"
   const ctaExplore = document.getElementById('btn-explore-demo');
   if (ctaExplore) {
     ctaExplore.addEventListener('click', (e) => {
@@ -236,5 +209,4 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
 });

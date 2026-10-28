@@ -1,17 +1,9 @@
-/* ==========================================================================
-   APLIKA. - Landing Page Oficial
-   Estilo Visual: Brutalista Suave (Soft Neo-Brutalism)
-   Identidade: #1f192b (fundo), #dfdbb6 (cartões vintage), bordas sólidas pretas
-   e sombras duras sem efeitos de neon/LED/IA.
-   ========================================================================== */
-
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
-
 :root {
   --bg-canvas: #1f192b;
   --bg-card: #dfdbb6;
@@ -20,25 +12,20 @@
   --bg-yellow-strip: #fef08a;
   --bg-green: #22c55e;
   --bg-green-hover: #2bd669;
-  
   --border-black: #000000;
   --shadow-sm: 2px 2px 0px #000000;
   --shadow-md: 4px 4px 0px #000000;
   --shadow-lg: 6px 6px 0px #000000;
   --shadow-xl: 8px 8px 0px #000000;
-
   --text-dark: #000000;
   --text-white: #ffffff;
   --text-muted: #b3adc2;
   --text-subtle: #8a8497;
-  
   --container-max: 1180px;
 }
-
 html {
   scroll-behavior: smooth;
 }
-
 body {
   background-color: var(--bg-canvas);
   color: var(--text-white);
@@ -46,10 +33,6 @@ body {
   overflow-x: hidden;
   line-height: 1.5;
 }
-
-/* --------------------------------------------------------------------------
-   Top Navbar
-   -------------------------------------------------------------------------- */
 .landing-header {
   width: 100%;
   border-bottom: 2px solid var(--border-black);
@@ -58,7 +41,6 @@ body {
   top: 0;
   z-index: 100;
 }
-
 .header-inner {
   max-width: var(--container-max);
   margin: 0 auto;
@@ -68,32 +50,27 @@ body {
   justify-content: space-between;
   gap: 16px;
 }
-
 .brand-wrapper {
   display: flex;
   align-items: center;
   gap: 12px;
   text-decoration: none;
 }
-
 .brand-logo-img {
   width: 32px;
   height: 32px;
   object-fit: contain;
   filter: drop-shadow(1px 2px 0px #000000);
 }
-
 .brand-title-text {
   font-size: 24px;
   font-weight: 900;
   color: #ffffff;
   letter-spacing: -0.8px;
 }
-
 .brand-dot {
   color: var(--bg-yellow);
 }
-
 .header-tagline {
   font-size: 11px;
   font-weight: 800;
@@ -105,13 +82,11 @@ body {
   border-radius: 999px;
   padding: 6px 16px;
 }
-
 .header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .btn-nav-login {
   background-color: var(--bg-white);
   border: 2px solid var(--border-black);
@@ -124,18 +99,15 @@ body {
   text-decoration: none;
   transition: all 0.12s ease;
 }
-
 .btn-nav-login:hover {
   transform: translate(-1px, -1px);
   box-shadow: var(--shadow-md);
   background-color: #fafafa;
 }
-
 .btn-nav-login:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0px #000000;
 }
-
 .btn-nav-cadastro {
   background-color: var(--bg-green);
   border: 2px solid var(--border-black);
@@ -148,21 +120,15 @@ body {
   text-decoration: none;
   transition: all 0.12s ease;
 }
-
 .btn-nav-cadastro:hover {
   transform: translate(-1px, -1px);
   box-shadow: var(--shadow-md);
   background-color: var(--bg-green-hover);
 }
-
 .btn-nav-cadastro:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0px #000000;
 }
-
-/* --------------------------------------------------------------------------
-   Decorative Screws (Hardware Signature)
-   -------------------------------------------------------------------------- */
 .screw {
   position: absolute;
   width: 12px;
@@ -173,34 +139,26 @@ body {
   pointer-events: none;
   z-index: 5;
 }
-
 .screw-tl { top: 12px; left: 12px; }
 .screw-tr { top: 12px; right: 12px; }
 .screw-bl { bottom: 12px; left: 12px; }
 .screw-br { bottom: 12px; right: 12px; }
-
-/* --------------------------------------------------------------------------
-   Hero Section (Brutalista Suave)
-   -------------------------------------------------------------------------- */
 .hero-section {
   max-width: var(--container-max);
   margin: 0 auto;
   padding: 56px 24px 64px 24px;
 }
-
 .hero-grid {
   display: grid;
   grid-template-columns: 1fr 1.05fr;
   gap: 44px;
   align-items: center;
 }
-
 .hero-content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
-
 .hero-badge-tag {
   display: inline-flex;
   align-items: center;
@@ -217,14 +175,12 @@ body {
   color: var(--text-dark);
   margin-bottom: 20px;
 }
-
 .badge-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background-color: var(--border-black);
 }
-
 .hero-title {
   font-size: 58px;
   font-weight: 900;
@@ -233,14 +189,12 @@ body {
   color: #ffffff;
   margin-bottom: 18px;
 }
-
 .hero-title-brand {
   display: block;
   font-size: 64px;
   letter-spacing: -2.5px;
   color: #ffffff;
 }
-
 .hero-green-badge {
   display: inline-block;
   background-color: var(--bg-green);
@@ -251,7 +205,6 @@ body {
   box-shadow: 3px 3px 0px #000000;
   transform: rotate(-1deg);
 }
-
 .hero-subtitle {
   font-size: 16px;
   font-weight: 500;
@@ -260,7 +213,6 @@ body {
   max-width: 480px;
   margin-bottom: 28px;
 }
-
 .hero-actions {
   display: flex;
   align-items: center;
@@ -268,7 +220,6 @@ body {
   flex-wrap: wrap;
   margin-bottom: 14px;
 }
-
 .btn-hero-primary {
   background-color: var(--bg-green);
   border: 2.5px solid var(--border-black);
@@ -284,18 +235,15 @@ body {
   gap: 8px;
   transition: all 0.12s ease;
 }
-
 .btn-hero-primary:hover {
   transform: translate(-1px, -1px);
   box-shadow: var(--shadow-lg);
   background-color: var(--bg-green-hover);
 }
-
 .btn-hero-primary:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0px #000000;
 }
-
 .btn-hero-secondary {
   background-color: var(--bg-white);
   border: 2.5px solid var(--border-black);
@@ -308,33 +256,25 @@ body {
   text-decoration: none;
   transition: all 0.12s ease;
 }
-
 .btn-hero-secondary:hover {
   transform: translate(-1px, -1px);
   box-shadow: var(--shadow-lg);
   background-color: #f7f7f7;
 }
-
 .btn-hero-secondary:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0px #000000;
 }
-
 .hero-footnote {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-subtle);
 }
-
-/* --------------------------------------------------------------------------
-   Hero Visual Schedule Console (Brutalista Suave - Limpo e Minimalista)
-   -------------------------------------------------------------------------- */
 .hero-visual-wrapper {
   position: relative;
   display: flex;
   justify-content: center;
 }
-
 .hero-brutalist-card {
   position: relative;
   background-color: var(--bg-card);
@@ -346,7 +286,6 @@ body {
   max-width: 470px;
   color: var(--text-dark);
 }
-
 .console-clean-header {
   display: flex;
   align-items: center;
@@ -355,7 +294,6 @@ body {
   margin-bottom: 16px;
   border-bottom: 1.5px solid rgba(0, 0, 0, 0.12);
 }
-
 .console-title-group {
   display: flex;
   align-items: center;
@@ -364,7 +302,6 @@ body {
   font-weight: 900;
   color: var(--text-dark);
 }
-
 .console-period-selector {
   display: flex;
   gap: 4px;
@@ -373,7 +310,6 @@ body {
   border-radius: 999px;
   padding: 2px;
 }
-
 .period-pill-btn {
   background: transparent;
   border: none;
@@ -385,21 +321,17 @@ body {
   cursor: pointer;
   transition: all 0.12s ease;
 }
-
 .period-pill-btn.active {
   background-color: var(--bg-yellow);
   border: 1.2px solid var(--border-black);
   box-shadow: 1px 1px 0px #000000;
   color: var(--text-dark);
 }
-
-/* Console Rooms List */
 .console-rooms-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-
 .brutalist-room-row {
   display: flex;
   align-items: center;
@@ -412,19 +344,16 @@ body {
   padding: 12px 14px;
   transition: all 0.12s ease;
 }
-
 .brutalist-room-row:hover {
   transform: translate(-1px, -1px);
   box-shadow: 3px 3px 0px #000000;
 }
-
 .room-left-group {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
-
 .room-icon-box {
   width: 32px;
   height: 32px;
@@ -436,13 +365,11 @@ body {
   font-size: 16px;
   flex-shrink: 0;
 }
-
 .room-meta-info {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
-
 .room-title-text {
   font-size: 13.5px;
   font-weight: 800;
@@ -451,7 +378,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .room-details-text {
   font-size: 11.5px;
   font-weight: 600;
@@ -461,7 +387,6 @@ body {
   text-overflow: ellipsis;
   margin-top: 1px;
 }
-
 .room-status-pill {
   font-size: 11px;
   font-weight: 800;
@@ -472,22 +397,18 @@ body {
   white-space: nowrap;
   flex-shrink: 0;
 }
-
 .pill-confirmed {
   background-color: var(--bg-green);
   color: var(--text-dark);
 }
-
 .pill-available {
   background-color: #ffffff;
   color: var(--text-dark);
 }
-
 .pill-scheduled {
   background-color: #c4b5fd;
   color: var(--text-dark);
 }
-
 .console-clean-footer {
   display: flex;
   align-items: center;
@@ -498,7 +419,6 @@ body {
   font-weight: 700;
   color: #555062;
 }
-
 .status-dot-green {
   width: 6px;
   height: 6px;
@@ -506,10 +426,6 @@ body {
   background-color: var(--bg-green);
   border: 1px solid #000000;
 }
-
-/* --------------------------------------------------------------------------
-   Spaces Yellow Strip (Banner Bar)
-   -------------------------------------------------------------------------- */
 .spaces-yellow-strip {
   width: 100%;
   background-color: var(--bg-yellow-strip);
@@ -518,7 +434,6 @@ body {
   padding: 16px 24px;
   color: var(--text-dark);
 }
-
 .strip-inner {
   max-width: var(--container-max);
   margin: 0 auto;
@@ -528,7 +443,6 @@ body {
   gap: 20px;
   flex-wrap: wrap;
 }
-
 .strip-pill-tag {
   background-color: #ffffff;
   border: 2px solid var(--border-black);
@@ -541,14 +455,12 @@ body {
   color: var(--text-dark);
   text-transform: uppercase;
 }
-
 .strip-items-row {
   display: flex;
   align-items: center;
   gap: 32px;
   flex-wrap: wrap;
 }
-
 .strip-space-item {
   display: flex;
   align-items: center;
@@ -558,20 +470,14 @@ body {
   color: var(--text-dark);
   transition: transform 0.12s ease;
 }
-
 .strip-space-item:hover {
   transform: translateY(-2px);
 }
-
-/* --------------------------------------------------------------------------
-   Section 1: Uma agenda clara. Uma escola em sintonia.
-   -------------------------------------------------------------------------- */
 .section-sintonia {
   max-width: var(--container-max);
   margin: 0 auto;
   padding: 80px 24px 60px 24px;
 }
-
 .section-tag-pill {
   display: inline-flex;
   align-items: center;
@@ -587,7 +493,6 @@ body {
   text-transform: uppercase;
   margin-bottom: 16px;
 }
-
 .section-split-header {
   display: flex;
   align-items: flex-start;
@@ -596,7 +501,6 @@ body {
   margin-bottom: 40px;
   flex-wrap: wrap;
 }
-
 .section-main-heading {
   font-size: 38px;
   font-weight: 900;
@@ -604,7 +508,6 @@ body {
   letter-spacing: -1.2px;
   color: #ffffff;
 }
-
 .section-header-desc {
   font-size: 15px;
   font-weight: 500;
@@ -612,13 +515,11 @@ body {
   line-height: 1.6;
   max-width: 440px;
 }
-
 .cards-three-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
-
 .brutalist-feature-card {
   position: relative;
   background-color: var(--bg-card);
@@ -633,19 +534,16 @@ body {
   transition: all 0.15s ease;
   min-height: 270px;
 }
-
 .brutalist-feature-card:hover {
   transform: translate(-2px, -2px);
   box-shadow: var(--shadow-xl);
 }
-
 .card-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 18px;
 }
-
 .card-icon-square {
   width: 42px;
   height: 42px;
@@ -658,7 +556,6 @@ body {
   justify-content: center;
   color: var(--text-dark);
 }
-
 .card-index-pill {
   background-color: #ffffff;
   border: 1.8px solid var(--border-black);
@@ -668,7 +565,6 @@ body {
   font-weight: 900;
   color: var(--text-dark);
 }
-
 .card-title-text {
   font-size: 18px;
   font-weight: 900;
@@ -676,7 +572,6 @@ body {
   margin-bottom: 8px;
   letter-spacing: -0.3px;
 }
-
 .card-body-text {
   font-size: 13.5px;
   font-weight: 500;
@@ -684,14 +579,12 @@ body {
   line-height: 1.5;
   margin-bottom: 20px;
 }
-
 .card-divider-line {
   width: 100%;
   height: 2px;
   background-color: rgba(0, 0, 0, 0.15);
   margin-bottom: 14px;
 }
-
 .card-bottom-btn {
   display: inline-flex;
   align-items: center;
@@ -708,29 +601,22 @@ body {
   transition: all 0.12s ease;
   width: fit-content;
 }
-
 .card-bottom-btn:hover {
   background-color: var(--bg-yellow);
   transform: translate(-1px, -1px);
   box-shadow: 3px 3px 0px #000000;
 }
-
-/* --------------------------------------------------------------------------
-   Section 2: O dia da escola. Sem complicação.
-   -------------------------------------------------------------------------- */
 .section-complicacao {
   max-width: var(--container-max);
   margin: 0 auto;
   padding: 60px 24px 80px 24px;
 }
-
 .complicacao-grid {
   display: grid;
   grid-template-columns: 1fr 1.15fr;
   gap: 46px;
   align-items: center;
 }
-
 .checklist-features-list {
   list-style: none;
   display: flex;
@@ -738,7 +624,6 @@ body {
   gap: 12px;
   margin: 24px 0 30px 0;
 }
-
 .checklist-item {
   display: flex;
   align-items: center;
@@ -747,7 +632,6 @@ body {
   font-weight: 700;
   color: #ffffff;
 }
-
 .check-circle {
   width: 22px;
   height: 22px;
@@ -761,7 +645,6 @@ body {
   flex-shrink: 0;
   color: #000000;
 }
-
 .btn-agenda-exemplo {
   display: inline-flex;
   align-items: center;
@@ -778,14 +661,11 @@ body {
   width: fit-content;
   transition: all 0.12s ease;
 }
-
 .btn-agenda-exemplo:hover {
   transform: translate(-1px, -1px);
   box-shadow: var(--shadow-lg);
   background-color: #fce268;
 }
-
-/* Table Window (Brutalista Suave) */
 .dashboard-table-window {
   position: relative;
   background-color: var(--bg-card);
@@ -795,7 +675,6 @@ body {
   padding: 26px 22px;
   color: var(--text-dark);
 }
-
 .dash-window-header {
   display: flex;
   align-items: center;
@@ -804,7 +683,6 @@ body {
   padding-bottom: 12px;
   border-bottom: 2px dashed rgba(0, 0, 0, 0.2);
 }
-
 .dash-title-left {
   display: flex;
   align-items: center;
@@ -812,7 +690,6 @@ body {
   font-size: 15px;
   font-weight: 900;
 }
-
 .dash-date-indicator {
   background-color: #ffffff;
   border: 1.8px solid var(--border-black);
@@ -821,13 +698,11 @@ body {
   font-size: 11px;
   font-weight: 800;
 }
-
 .dash-tabs-bar {
   display: flex;
   gap: 6px;
   margin-bottom: 16px;
 }
-
 .dash-tab-pill {
   background-color: #ffffff;
   border: 2px solid var(--border-black);
@@ -840,19 +715,16 @@ body {
   cursor: pointer;
   transition: all 0.12s ease;
 }
-
 .dash-tab-pill.active {
   background-color: var(--bg-green);
   box-shadow: 3px 3px 0px #000000;
   transform: translate(-1px, -1px);
 }
-
 .dash-table-wrap {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0 8px;
 }
-
 .dash-table-wrap th {
   text-align: left;
   font-size: 11px;
@@ -862,7 +734,6 @@ body {
   padding: 4px 12px;
   text-transform: uppercase;
 }
-
 .dash-table-wrap td {
   background-color: #ffffff;
   border-top: 2px solid var(--border-black);
@@ -871,40 +742,33 @@ body {
   font-size: 13px;
   font-weight: 700;
 }
-
 .dash-table-wrap td:first-child {
   border-left: 2px solid var(--border-black);
   border-top-left-radius: 10px;
   border-bottom-left-radius: 10px;
 }
-
 .dash-table-wrap td:last-child {
   border-right: 2px solid var(--border-black);
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
 }
-
 .class-period-col {
   display: flex;
   flex-direction: column;
 }
-
 .class-title {
   font-weight: 900;
   color: var(--text-dark);
 }
-
 .class-time {
   font-size: 11px;
   font-weight: 600;
   color: #555062;
 }
-
 .class-room-name {
   font-weight: 800;
   color: var(--text-dark);
 }
-
 .status-badge-cell {
   display: inline-flex;
   align-items: center;
@@ -916,17 +780,14 @@ body {
   font-size: 11px;
   font-weight: 900;
 }
-
 .badge-confirmed {
   background-color: var(--bg-green);
   color: var(--text-dark);
 }
-
 .badge-free {
   background-color: var(--bg-yellow);
   color: var(--text-dark);
 }
-
 .dash-footer-note {
   display: flex;
   align-items: center;
@@ -936,10 +797,6 @@ body {
   font-weight: 700;
   color: #3b3749;
 }
-
-/* --------------------------------------------------------------------------
-   Section 3: Bottom Call to Action
-   -------------------------------------------------------------------------- */
 .section-cta-bottom {
   max-width: var(--container-max);
   margin: 0 auto;
@@ -949,7 +806,6 @@ body {
   flex-direction: column;
   align-items: center;
 }
-
 .cta-bottom-title {
   font-size: 46px;
   font-weight: 900;
@@ -959,7 +815,6 @@ body {
   margin-bottom: 26px;
   max-width: 680px;
 }
-
 .btn-cta-bottom {
   background-color: var(--bg-green);
   border: 2.5px solid var(--border-black);
@@ -976,34 +831,26 @@ body {
   transition: all 0.12s ease;
   margin-bottom: 14px;
 }
-
 .btn-cta-bottom:hover {
   transform: translate(-2px, -2px);
   box-shadow: var(--shadow-xl);
   background-color: var(--bg-green-hover);
 }
-
 .btn-cta-bottom:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0px #000000;
 }
-
 .cta-disclaimer {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-subtle);
 }
-
-/* --------------------------------------------------------------------------
-   Footer
-   -------------------------------------------------------------------------- */
 .landing-footer {
   width: 100%;
   border-top: 2px solid var(--border-black);
   background-color: #171221;
   padding: 24px;
 }
-
 .footer-inner {
   max-width: var(--container-max);
   margin: 0 auto;
@@ -1015,7 +862,6 @@ body {
   font-size: 13px;
   color: var(--text-muted);
 }
-
 .footer-logo {
   display: flex;
   align-items: center;
@@ -1024,74 +870,56 @@ body {
   font-weight: 900;
   color: #ffffff;
 }
-
 .footer-center {
   font-weight: 600;
 }
-
-/* --------------------------------------------------------------------------
-   Responsive Breakpoints
-   -------------------------------------------------------------------------- */
 @media (max-width: 992px) {
   .hero-grid {
     grid-template-columns: 1fr;
     gap: 36px;
   }
-  
   .hero-title {
     font-size: 46px;
   }
-  
   .hero-title-brand {
     font-size: 50px;
   }
-  
   .cards-three-grid {
     grid-template-columns: 1fr;
   }
-  
   .complicacao-grid {
     grid-template-columns: 1fr;
     gap: 36px;
   }
-  
   .section-main-heading {
     font-size: 32px;
   }
-  
   .cta-bottom-title {
     font-size: 34px;
   }
-  
   .strip-inner {
     flex-direction: column;
     align-items: flex-start;
   }
-  
   .strip-items-row {
     gap: 16px;
   }
 }
-
 @media (max-width: 768px) {
   .header-tagline {
     display: none;
   }
-  
   .hero-section {
     padding: 32px 16px 44px 16px;
   }
-  
   .hero-title {
     font-size: 38px;
   }
-  
   .hero-floating-badge {
     position: static;
     margin-top: 14px;
     max-width: 100%;
   }
-  
   .section-sintonia,
   .section-complicacao,
   .section-cta-bottom {

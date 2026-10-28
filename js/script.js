@@ -1,19 +1,14 @@
 const SUPABASE_URL = "https://azxxweoulvsqvlyfmgtq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_n85S7m9uS_TThMm9zo63jA_fHAgpjLP";
-
 let supabaseClient = null;
-
 function getSupabase() {
   if (!supabaseClient && window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
   return supabaseClient;
 }
-
 getSupabase();
-
 const USERS_DB_KEY = "etec_usuarios_cadastrados";
-
 function getRegisteredUsers() {
   try {
     const raw = localStorage.getItem(USERS_DB_KEY);
@@ -22,7 +17,6 @@ function getRegisteredUsers() {
     return {};
   }
 }
-
 function saveRegisteredUserProfile(email, name, role, password = "") {
   if (!email) return;
   const db = getRegisteredUsers();
@@ -35,20 +29,17 @@ function saveRegisteredUserProfile(email, name, role, password = "") {
     localStorage.setItem(USERS_DB_KEY, JSON.stringify(db));
   } catch (e) {}
 }
-
 function getRegisteredUserProfile(email) {
   if (!email) return null;
   const db = getRegisteredUsers();
   return db[email.toLowerCase().trim()] || null;
 }
-
 function saveSessionProfile(email, customName = "", customRole = "", customUserId = "") {
   if (!email) return;
   const lower = email.toLowerCase().trim();
   let name = customName ? customName.trim() : "";
   let role = customRole ? customRole.trim() : "";
   let userId = customUserId || "";
-
   if (!name) {
     const reg = getRegisteredUserProfile(lower);
     if (reg && reg.name) {
@@ -56,7 +47,6 @@ function saveSessionProfile(email, customName = "", customRole = "", customUserI
       role = role || reg.role;
     }
   }
-
   if (lower === "dguerrask@gmail.com") {
     name = name || "Dimitri";
     role = role || "Docente CPS";
@@ -77,7 +67,6 @@ function saveSessionProfile(email, customName = "", customRole = "", customUserI
       userId = "user_" + Date.now() + "_" + Math.random().toString(36).substring(2, 8);
     }
   }
-
   try {
     const p = {
       name: name,
@@ -91,7 +80,6 @@ function saveSessionProfile(email, customName = "", customRole = "", customUserI
     console.warn("Não foi possível salvar perfil local:", e);
   }
 }
-
 function formatAuthError(error) {
   const msg = error?.message || "";
   if (msg.includes("Invalid login credentials")) {
@@ -111,11 +99,9 @@ function formatAuthError(error) {
   }
   return "Erro: " + msg;
 }
-
 async function initSessionCheck() {
   const client = getSupabase();
   if (!client) return;
-
   if (window.location.hash.includes("access_token")) {
     client.auth.onAuthStateChange((event, session) => {
       if (session && event === "SIGNED_IN") {
@@ -128,18 +114,14 @@ async function initSessionCheck() {
     });
   }
 }
-
 initSessionCheck();
-
 const tabLogin = document.getElementById("tab-login");
 const tabRegister = document.getElementById("tab-register");
 const authForm = document.getElementById("auth-form");
-
 const nameContainer = document.getElementById("name-container");
 const nameInput = document.getElementById("register-name");
 const roleContainer = document.getElementById("role-container");
 const roleInput = document.getElementById("register-role");
-
 const emailInput = document.getElementById("email");
 const emailLabel = document.getElementById("email-label");
 const passwordInput = document.getElementById("password");
@@ -150,62 +132,44 @@ const confirmPasswordInput = document.getElementById("confirm-password");
 const submitBtn = document.getElementById("submit-btn");
 const submitText = document.getElementById("submit-text");
 const termsCheckbox = document.getElementById("terms-checkbox");
-
 let currentMode = "login";
-
 function setMode(mode) {
   currentMode = mode;
-
   if (mode === "login") {
     tabLogin.classList.add("active");
     tabRegister.classList.remove("active");
-
     if (nameContainer) nameContainer.style.display = "none";
     if (nameInput) nameInput.removeAttribute("required");
-
     if (roleContainer) roleContainer.style.display = "none";
     if (roleInput) roleInput.removeAttribute("required");
-
     emailLabel.textContent = "E-MAIL INSTITUCIONAL";
     emailInput.placeholder = "@professor.cps.sp.gov.br";
-
     passwordLabel.textContent = "SENHA DO ALUNO / PROFESSOR";
     passwordInput.placeholder = "Senha do aluno/professor";
     forgotLink.style.display = "inline";
-
     confirmContainer.style.display = "none";
     confirmPasswordInput.removeAttribute("required");
-
     submitText.textContent = "Entrar";
   } else {
     tabRegister.classList.add("active");
     tabLogin.classList.remove("active");
-
     if (nameContainer) nameContainer.style.display = "flex";
     if (nameInput) nameInput.setAttribute("required", "true");
-
     if (roleContainer) roleContainer.style.display = "flex";
     if (roleInput) roleInput.setAttribute("required", "true");
-
     emailLabel.textContent = "E-MAIL INSTITUCIONAL";
     emailInput.placeholder = "@aluno/professor.cps.sp.gov.br";
-
     passwordLabel.textContent = "SENHA";
     passwordInput.placeholder = "Mínimo 6 dígitos";
     forgotLink.style.display = "none";
-
     confirmContainer.style.display = "flex";
     confirmPasswordInput.setAttribute("required", "true");
-
     submitText.textContent = "Criar Conta";
   }
 }
-
 window.setMode = setMode;
-
 tabLogin.addEventListener("click", () => setMode("login"));
 tabRegister.addEventListener("click", () => setMode("register"));
-
 try {
   const urlParams = new URLSearchParams(window.location.search);
   const paramMode = urlParams.get("mode");
@@ -215,19 +179,16 @@ try {
     setMode("login");
   }
 } catch (e) {}
-
 if (forgotLink) {
   forgotLink.addEventListener("click", async (e) => {
     e.preventDefault();
     const email = emailInput.value.trim() || prompt("Digite o e-mail cadastrado para redefinir a senha:");
     if (!email) return;
-
     const client = getSupabase();
     if (!client) {
       alert("Serviço indisponível.");
       return;
     }
-
     try {
       const { error } = await client.auth.resetPasswordForEmail(email);
       if (error) {
@@ -240,13 +201,11 @@ if (forgotLink) {
     }
   });
 }
-
 document.querySelectorAll(".eye-toggle").forEach((btn) => {
   btn.addEventListener("click", () => {
     const inputId = btn.getAttribute("data-input");
     const input = document.getElementById(inputId);
     if (!input) return;
-
     if (input.type === "password") {
       input.type = "text";
       btn.innerHTML = `
@@ -266,50 +225,39 @@ document.querySelectorAll(".eye-toggle").forEach((btn) => {
     }
   });
 });
-
 authForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-
   const email = emailInput.value.trim();
   const password = passwordInput.value;
-
   if (!termsCheckbox.checked) {
     alert("Aceite os termos para prosseguir.");
     return;
   }
-
   const client = getSupabase();
   if (!client) {
     alert("Serviço indisponível.");
     return;
   }
-
   if (currentMode === "register") {
     const name = nameInput ? nameInput.value.trim() : "";
     const role = roleInput ? roleInput.value.trim() : "Docente CPS";
     const confirmPassword = confirmPasswordInput.value;
-
     if (!name) {
       alert("Informe seu nome completo.");
       if (nameInput) nameInput.focus();
       return;
     }
-
     if (password.length < 6) {
       alert("A senha deve ter no mínimo 6 dígitos.");
       return;
     }
-
     if (password !== confirmPassword) {
       alert("As senhas não coincidem.");
       return;
     }
-
     submitBtn.disabled = true;
     submitText.textContent = "Cadastrando...";
-
     try {
-
       const { data, error } = await client.auth.signUp({
         email: email,
         password: password,
@@ -320,9 +268,7 @@ authForm.addEventListener("submit", async (e) => {
           }
         }
       });
-
       if (error) {
-
         if (error.message && error.message.includes("email rate limit exceeded")) {
           saveRegisteredUserProfile(email, name, role, password);
           alert("Conta criada com sucesso! Faça login para continuar.");
@@ -332,14 +278,10 @@ authForm.addEventListener("submit", async (e) => {
           passwordInput.focus();
           return;
         }
-
         alert(formatAuthError(error));
       } else {
-
         saveRegisteredUserProfile(email, name, role, password);
-
         alert("Conta criada com sucesso! Faça login para continuar.");
-
         setMode("login");
         emailInput.value = email;
         passwordInput.value = "";
@@ -354,13 +296,11 @@ authForm.addEventListener("submit", async (e) => {
   } else {
     submitBtn.disabled = true;
     submitText.textContent = "Entrando...";
-
     try {
       const { data, error } = await client.auth.signInWithPassword({
         email: email,
         password: password
       });
-
       if (error) {
         if (error.message && error.message.includes("Email not confirmed")) {
           const reg = getRegisteredUserProfile(email);
@@ -368,14 +308,12 @@ authForm.addEventListener("submit", async (e) => {
           window.location.href = "escolas.html";
           return;
         }
-
         const reg = getRegisteredUserProfile(email);
         if (reg && reg.password && reg.password === password) {
           saveSessionProfile(email, reg.name, reg.role);
           window.location.href = "escolas.html";
           return;
         }
-
         const lower = email.toLowerCase();
         if (
           (lower === "dguerrask@gmail.com" && password === "123456") ||
@@ -387,13 +325,11 @@ authForm.addEventListener("submit", async (e) => {
         }
         alert(formatAuthError(error));
       } else {
-
         const meta = data?.user?.user_metadata || {};
         const reg = getRegisteredUserProfile(email);
         const finalName = meta.name || reg?.name || "";
         const finalRole = meta.role || reg?.role || "";
         const finalUserId = data?.user?.id ? `user_${data.user.id}` : "";
-
         saveSessionProfile(data.user.email, finalName, finalRole, finalUserId);
         window.location.href = "escolas.html";
       }
@@ -405,14 +341,12 @@ authForm.addEventListener("submit", async (e) => {
     }
   }
 });
-
 const btnQuickAccess = document.getElementById("btn-quick-access");
 if (btnQuickAccess) {
   btnQuickAccess.addEventListener("click", async () => {
     const DIMITRI_EMAIL = "dguerrask@gmail.com";
     const DIMITRI_NAME = "Dimitri";
     const DIMITRI_PASS = "123456";
-
     btnQuickAccess.style.pointerEvents = "none";
     btnQuickAccess.style.opacity = "0.7";
     btnQuickAccess.innerHTML = `
@@ -421,9 +355,7 @@ if (btnQuickAccess) {
       </svg>
       <span>Acessando...</span>
     `;
-
     saveSessionProfile(DIMITRI_EMAIL, DIMITRI_NAME, "Docente CPS", "user_dimitri");
-
     const client = getSupabase();
     if (client) {
       try {
@@ -431,7 +363,6 @@ if (btnQuickAccess) {
           email: DIMITRI_EMAIL,
           password: DIMITRI_PASS
         });
-
         if (error && (error.message.includes("Invalid login credentials") || error.message.includes("User not found"))) {
           await client.auth.signUp({
             email: DIMITRI_EMAIL,
@@ -443,18 +374,15 @@ if (btnQuickAccess) {
         console.warn("Tentativa de login Supabase em segundo plano:", err);
       }
     }
-
     window.location.href = "escolas.html";
   });
 }
-
 const btnQuickAccessAna = document.getElementById("btn-quick-access-ana");
 if (btnQuickAccessAna) {
   btnQuickAccessAna.addEventListener("click", async () => {
     const ANA_EMAIL = "anacarol.docente@gmail.com";
     const ANA_NAME = "Ana Carol";
     const ANA_PASS = "123456";
-
     btnQuickAccessAna.style.pointerEvents = "none";
     btnQuickAccessAna.style.opacity = "0.7";
     btnQuickAccessAna.innerHTML = `
@@ -463,9 +391,7 @@ if (btnQuickAccessAna) {
       </svg>
       <span>Acessando...</span>
     `;
-
     saveSessionProfile(ANA_EMAIL, ANA_NAME, "Docente CPS", "user_anacarol");
-
     const client = getSupabase();
     if (client) {
       try {
@@ -473,7 +399,6 @@ if (btnQuickAccessAna) {
           email: ANA_EMAIL,
           password: ANA_PASS
         });
-
         if (error && (error.message.includes("Invalid login credentials") || error.message.includes("User not found"))) {
           await client.auth.signUp({
             email: ANA_EMAIL,
@@ -485,7 +410,6 @@ if (btnQuickAccessAna) {
         console.warn("Tentativa de login Supabase em segundo plano:", err);
       }
     }
-
     window.location.href = "escolas.html";
   });
 }
